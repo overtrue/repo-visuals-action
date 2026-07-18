@@ -10,6 +10,9 @@ inputs:
   github-token:
     description: Repository-scoped token used to read stars and publish artifacts
     required: true
+  stargazers-token:
+    description: Optional admin or collaborator user token used only to bootstrap historical timestamps
+    required: false
   output-branch:
     description: Branch that stores the generated history and SVG files
     required: false
@@ -19,9 +22,9 @@ inputs:
     required: false
     default: .
   bootstrap:
-    description: Fetch historical stargazer timestamps when no history exists
+    description: Fetch historical timestamps with stargazers-token when no history exists
     required: false
-    default: "true"
+    default: "false"
   commit-message:
     description: Commit message used when generated artifacts change
     required: false

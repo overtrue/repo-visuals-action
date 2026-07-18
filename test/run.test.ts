@@ -57,7 +57,7 @@ const inputs = (overrides: Partial<ActionInputs> = {}): ActionInputs => ({
 
 test("bootstraps and publishes all artifacts below output-path", async () => {
   const client = new FakeClient({ history: null, parentSha: null }, 29_944);
-  const result = await runAction(client, inputs());
+  const result = await runAction(client, inputs(), client);
 
   assert.equal(client.bootstrapCalls, 1);
   assert.deepEqual(
@@ -80,6 +80,12 @@ test("can start tracking without historical bootstrap", async () => {
   assert.equal(client.bootstrapCalls, 0);
   const stored = JSON.parse(client.artifacts[0]?.content ?? "") as { points: [string, number][] };
   assert.deepEqual(stored.points, [["2026-07-18", 0]]);
+});
+
+test("requires a user token only when historical bootstrap is needed", async () => {
+  const client = new FakeClient({ history: null, parentSha: null }, 29_944);
+
+  await assert.rejects(() => runAction(client, inputs()), /stargazers-token/);
 });
 
 test("updates existing history without refetching stargazers", async () => {

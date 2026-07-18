@@ -28,17 +28,30 @@ export interface ActionResult {
   historyUrl: string;
 }
 
-export async function runAction(client: StarHistoryClient, inputs: ActionInputs): Promise<ActionResult> {
+type StargazerClient = Pick<StarHistoryClient, "fetchStargazerTimestamps">;
+
+export async function runAction(
+  client: StarHistoryClient,
+  inputs: ActionInputs,
+  stargazerClient?: StargazerClient,
+): Promise<ActionResult> {
   const historyPath = outputFile(inputs.outputPath, "history.json");
   const lightPath = outputFile(inputs.outputPath, "star-history-light.svg");
   const darkPath = outputFile(inputs.outputPath, "star-history-dark.svg");
   const loaded = await client.loadHistory(inputs.outputBranch, historyPath);
+  const stars = await client.fetchRepositoryCount();
 
   let history: StarHistory;
   if (loaded.history) {
     history = validateHistory(loaded.history, inputs.repository);
   } else {
-    const timestamps = inputs.bootstrap ? await client.fetchStargazerTimestamps() : [];
+    let timestamps: string[] = [];
+    if (inputs.bootstrap) {
+      if (!stargazerClient) {
+        throw new Error("stargazers-token is required to bootstrap historical timestamps");
+      }
+      timestamps = await stargazerClient.fetchStargazerTimestamps();
+    }
     history = {
       schema: SCHEMA_VERSION,
       repository: inputs.repository,
@@ -46,7 +59,6 @@ export async function runAction(client: StarHistoryClient, inputs: ActionInputs)
     };
   }
 
-  const stars = await client.fetchRepositoryCount();
   history = mergeSnapshot(history, inputs.today, stars);
   const artifacts: Artifact[] = [
     { path: historyPath, content: `${JSON.stringify(history, null, 2)}\n` },

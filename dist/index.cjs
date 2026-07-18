@@ -19719,23 +19719,29 @@ function renderSvg(history, dark = false) {
 }
 
 // src/run.ts
-async function runAction(client, inputs) {
+async function runAction(client, inputs, stargazerClient) {
   const historyPath = outputFile(inputs.outputPath, "history.json");
   const lightPath = outputFile(inputs.outputPath, "star-history-light.svg");
   const darkPath = outputFile(inputs.outputPath, "star-history-dark.svg");
   const loaded = await client.loadHistory(inputs.outputBranch, historyPath);
+  const stars = await client.fetchRepositoryCount();
   let history;
   if (loaded.history) {
     history = validateHistory(loaded.history, inputs.repository);
   } else {
-    const timestamps = inputs.bootstrap ? await client.fetchStargazerTimestamps() : [];
+    let timestamps = [];
+    if (inputs.bootstrap) {
+      if (!stargazerClient) {
+        throw new Error("stargazers-token is required to bootstrap historical timestamps");
+      }
+      timestamps = await stargazerClient.fetchStargazerTimestamps();
+    }
     history = {
       schema: SCHEMA_VERSION,
       repository: inputs.repository,
       points: aggregateStargazers(timestamps)
     };
   }
-  const stars = await client.fetchRepositoryCount();
   history = mergeSnapshot(history, inputs.today, stars);
   const artifacts = [
     { path: historyPath, content: `${JSON.stringify(history, null, 2)}
@@ -19764,6 +19770,10 @@ async function main() {
   try {
     const token = getInput("github-token", { required: true });
     setSecret(token);
+    const stargazersToken = getInput("stargazers-token");
+    if (stargazersToken) {
+      setSecret(stargazersToken);
+    }
     const repository = validateRepository(process.env.GITHUB_REPOSITORY ?? "");
     const apiUrl = process.env.GITHUB_API_URL ?? "https://api.github.com";
     const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
@@ -19773,15 +19783,19 @@ async function main() {
     if (!commitMessage.trim() || /[\u0000-\u001f\u007f]/.test(commitMessage)) {
       throw new Error("commit-message must be a non-empty single line");
     }
-    const result = await runAction(new GitHubClient(token, repository, apiUrl), {
-      repository,
-      serverUrl,
-      outputBranch,
-      outputPath,
-      bootstrap: getBooleanInput("bootstrap"),
-      commitMessage,
-      today: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
-    });
+    const result = await runAction(
+      new GitHubClient(token, repository, apiUrl),
+      {
+        repository,
+        serverUrl,
+        outputBranch,
+        outputPath,
+        bootstrap: getBooleanInput("bootstrap"),
+        commitMessage,
+        today: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
+      },
+      stargazersToken ? new GitHubClient(stargazersToken, repository, apiUrl) : void 0
+    );
     setOutput("stars", result.stars);
     setOutput("changed", result.changed);
     setOutput("commit-sha", result.commitSha);

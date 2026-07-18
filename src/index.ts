@@ -9,6 +9,10 @@ async function main(): Promise<void> {
   try {
     const token = core.getInput("github-token", { required: true });
     core.setSecret(token);
+    const stargazersToken = core.getInput("stargazers-token");
+    if (stargazersToken) {
+      core.setSecret(stargazersToken);
+    }
     const repository = validateRepository(process.env.GITHUB_REPOSITORY ?? "");
     const apiUrl = process.env.GITHUB_API_URL ?? "https://api.github.com";
     const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
@@ -19,15 +23,19 @@ async function main(): Promise<void> {
       throw new Error("commit-message must be a non-empty single line");
     }
 
-    const result = await runAction(new GitHubClient(token, repository, apiUrl), {
-      repository,
-      serverUrl,
-      outputBranch,
-      outputPath,
-      bootstrap: core.getBooleanInput("bootstrap"),
-      commitMessage,
-      today: new Date().toISOString().slice(0, 10),
-    });
+    const result = await runAction(
+      new GitHubClient(token, repository, apiUrl),
+      {
+        repository,
+        serverUrl,
+        outputBranch,
+        outputPath,
+        bootstrap: core.getBooleanInput("bootstrap"),
+        commitMessage,
+        today: new Date().toISOString().slice(0, 10),
+      },
+      stargazersToken ? new GitHubClient(stargazersToken, repository, apiUrl) : undefined,
+    );
 
     core.setOutput("stars", result.stars);
     core.setOutput("changed", result.changed);

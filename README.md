@@ -30,7 +30,19 @@ jobs:
           output-path: .
 ```
 
-The first run reconstructs available history from GitHub's stargazer timestamps. Later runs fetch only the current star count instead of listing stargazers again, then append or replace the current UTC day's count. Set `bootstrap: "false"` to start tracking from the first run instead.
+The first run starts with the current UTC day's star count. Later runs append or replace that day's count, so the stored history becomes the source for future charts.
+
+GitHub now limits the stargazer listing endpoint to repository admins and collaborators. To reconstruct available history on the first run, provide a fine-grained personal access token owned by an admin or collaborator with read-only repository metadata access:
+
+```yaml
+      - uses: overtrue/star-history-action@v1
+        with:
+          github-token: ${{ github.token }}
+          stargazers-token: ${{ secrets.STARGAZERS_TOKEN }}
+          bootstrap: "true"
+```
+
+The user token is used only when `history.json` does not exist. Scheduled updates continue with the repository-scoped `GITHUB_TOKEN`, so the secret can be removed after bootstrap.
 
 The output branch contains:
 
@@ -56,9 +68,10 @@ For stronger supply-chain security, pin the action to a full commit SHA instead 
 | Input | Default | Description |
 | --- | --- | --- |
 | `github-token` | required | Repository-scoped token used to read stars and publish artifacts. |
+| `stargazers-token` | unset | Admin or collaborator user token used only for historical bootstrap. |
 | `output-branch` | `star-history` | Branch used for generated artifacts. |
 | `output-path` | `.` | Directory inside the output branch. |
-| `bootstrap` | `true` | Fetch historical stargazer timestamps if history is missing. |
+| `bootstrap` | `false` | Fetch historical stargazer timestamps if history is missing. |
 | `commit-message` | `chore: update star history` | Artifact commit message. |
 
 ## Outputs
