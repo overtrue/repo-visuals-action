@@ -1,0 +1,25 @@
+{
+  "name": "star-history-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generate and publish self-hosted GitHub star history charts",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "package": "esbuild src/index.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.cjs",
+    "check": "npm run typecheck && npm test && npm run package && git diff --exit-code -- dist"
+  },
+  "dependencies": {
+    "@actions/core": "3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.1",
+    "esbuild": "0.28.1",
+    "typescript": "7.0.2"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,46 @@
+name: Self-hosted Star History
+description: Generate and publish star history charts using only GitHub Actions and the GitHub API
+author: overtrue
+
+branding:
+  icon: star
+  color: orange
+
+inputs:
+  github-token:
+    description: Repository-scoped token used to read stars and publish artifacts
+    required: true
+  output-branch:
+    description: Branch that stores the generated history and SVG files
+    required: false
+    default: star-history
+  output-path:
+    description: Repository-relative directory inside the output branch
+    required: false
+    default: .
+  bootstrap:
+    description: Fetch historical stargazer timestamps when no history exists
+    required: false
+    default: "true"
+  commit-message:
+    description: Commit message used when generated artifacts change
+    required: false
+    default: "chore: update star history"
+
+outputs:
+  stars:
+    description: Current stargazer count
+  changed:
+    description: Whether a new artifact commit was published
+  commit-sha:
+    description: Commit containing the generated artifacts
+  light-url:
+    description: Raw URL for the light chart
+  dark-url:
+    description: Raw URL for the dark chart
+  history-url:
+    description: Raw URL for the aggregated history JSON
+
+runs:
+  using: node24
+  main: dist/index.cjs
