@@ -19515,7 +19515,7 @@ var GitHubClient = class {
             accept,
             authorization: `Bearer ${this.token}`,
             "content-type": "application/json",
-            "user-agent": "overtrue-star-history-action",
+            "user-agent": "overtrue-repo-visuals-action",
             "x-github-api-version": "2026-03-10"
           },
           body: body === void 0 ? void 0 : JSON.stringify(body),
@@ -19630,7 +19630,7 @@ var GitHubClient = class {
         const response = await this.fetchImplementation(url, {
           headers: {
             accept: "image/png,image/jpeg,image/webp",
-            "user-agent": "overtrue-star-history-action"
+            "user-agent": "overtrue-repo-visuals-action"
           },
           redirect: "error",
           signal: AbortSignal.timeout(3e4)

@@ -5,11 +5,11 @@
 Copy this prompt into a coding agent to add the action to another repository:
 
 ```text
-Replace hosted third-party star history and contributor-wall images in this repository with overtrue/star-history-action.
+Replace hosted third-party star history and contributor-wall images in this repository with overtrue/repo-visuals-action.
 
 1. Inspect the existing README and GitHub workflows before changing anything.
 2. Create `.github/workflows/star-history.yml` with a daily schedule and `workflow_dispatch`, `contents: write`, and a non-cancelling `star-history` concurrency group.
-3. Resolve the latest stable `v1` release of `overtrue/star-history-action` and pin `uses:` to its full commit SHA, with the release version in a comment. Do not use a floating tag in the committed workflow.
+3. Resolve the latest stable `v1` release of `overtrue/repo-visuals-action` and pin `uses:` to its full commit SHA, with the release version in a comment. Do not use a floating tag in the committed workflow.
 4. Configure `github-token: ${{ github.token }}`, `output-branch: star-history`, an explicit repository-relative `output-path`, `chart-style: gradient`, `animate: "true"`, and `contributors: "true"`. Do not add `actions/checkout`; the action does not need it.
 5. Replace the star history image with a `<picture>` element using `star-history-dark.svg` and `star-history-light.svg`. Replace the contributor wall with another `<picture>` using `contributors-dark.svg` and `contributors-light.svg`. Include `output-path` in every URL when it is not `.` and use the repository's actual owner and name.
 6. Use only `GITHUB_TOKEN` for normal updates. Do not create, print, or commit a personal token. Add `stargazers-token`, `bootstrap: "true"`, and a repository secret only if I explicitly request historical bootstrap.
@@ -75,7 +75,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: overtrue/star-history-action@v1
+      - uses: overtrue/repo-visuals-action@v1
         with:
           github-token: ${{ github.token }}
           output-branch: star-history
@@ -90,7 +90,7 @@ The first run starts with the current UTC day's star count. Later runs append or
 GitHub now limits the stargazer listing endpoint to repository admins and collaborators. To reconstruct available history on the first run, provide a fine-grained personal access token owned by an admin or collaborator with read-only repository metadata access:
 
 ```yaml
-      - uses: overtrue/star-history-action@v1
+      - uses: overtrue/repo-visuals-action@v1
         with:
           github-token: ${{ github.token }}
           stargazers-token: ${{ secrets.STARGAZERS_TOKEN }}

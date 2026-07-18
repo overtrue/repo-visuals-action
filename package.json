@@ -1,6 +1,6 @@
 {
-  "name": "star-history-action",
-  "version": "1.2.0",
+  "name": "repo-visuals-action",
+  "version": "1.2.1",
   "private": true,
   "description": "Generate and publish self-hosted GitHub repository visuals",
   "type": "module",
