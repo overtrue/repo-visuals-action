@@ -1,21 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title description" data-style="gradient" data-animated="true">
 <title id="title">overtrue/star-history-action star history</title>
-<desc id="description">0 stars as of 2026-07-18</desc>
+<desc id="description">0 stars as of 2026-07-18. Daily cumulative star trend.</desc>
 <defs>
-<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e05d44" stop-opacity="0.30"/><stop offset="100%" stop-color="#e05d44" stop-opacity="0.03"/></linearGradient>
+<linearGradient id="trend" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#3ecf8e"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient>
+<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3ecf8e" stop-opacity="0.28"/><stop offset="60%" stop-color="#38bdf8" stop-opacity="0.10"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0.02"/></linearGradient>
+<radialGradient id="surface-glow" cx="76%" cy="18%" r="72%"><stop offset="0%" stop-color="#38bdf8" stop-opacity="0.12"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0"/></radialGradient>
+<filter id="trend-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
 </defs>
-<rect width="960" height="540" fill="#0d1117" rx="12"/>
-<text x="86" y="36" fill="#e6edf3" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="650">Star History</text>
-<text x="86" y="58" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14">overtrue/star-history-action</text>
-<line x1="86" y1="474.0" x2="926" y2="474.0" stroke="#30363d" stroke-width="1"/>
-<text x="74" y="479.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="end">0</text>
-<line x1="86" y1="74.0" x2="926" y2="74.0" stroke="#30363d" stroke-width="1"/>
-<text x="74" y="79.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="end">1</text>
-<text x="86.0" y="504" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Jul 18</text>
-<path d="M 86.0 474.0 L 86.0 474.0 L 86.0 474.0 Z" fill="url(#area)"/>
-<path d="M 86.0 474.0" fill="none" stroke="#e05d44" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="86.0" cy="474.0" r="5" fill="#e05d44" stroke="#0d1117" stroke-width="2"/>
-<text x="78.0" y="462.0" fill="#e05d44" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="650" text-anchor="end">0</text>
-<text x="926" y="522" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" text-anchor="end">Updated 2026-07-18</text>
+<style>
+.trend-enter{transform-box:fill-box;transform-origin:center;animation:trend-enter 480ms cubic-bezier(0.16,1,0.3,1)}
+.marker-enter{transform-box:fill-box;transform-origin:center;animation:marker-enter 300ms cubic-bezier(0.16,1,0.3,1)}
+@keyframes trend-enter{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes marker-enter{from{opacity:.6;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.trend-enter,.marker-enter{animation:none!important}}
+</style>
+<rect width="960" height="540" fill="#0f172a" rx="16"/>
+<rect width="960" height="540" fill="url(#surface-glow)" rx="16"/>
+<path d="M12 2.8l2.8 5.7 6.3.9-4.6 4.5 1.1 6.3-5.6-3-5.6 3 1.1-6.3-4.6-4.5 6.3-.9L12 2.8Z" transform="translate(80 18) scale(.82)" fill="url(#trend)" stroke="url(#trend)" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"/>
+<text x="112" y="40" fill="#f8fafc" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="24" font-weight="600">Star History</text>
+<text x="112" y="60" fill="#94a3b8" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14">overtrue/star-history-action</text>
+<line x1="80" y1="476.0" x2="928" y2="476.0" stroke="#27364a" stroke-width="1"/>
+<text x="68" y="481.0" fill="#94a3b8" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" text-anchor="end">0</text>
+<line x1="80" y1="72.0" x2="928" y2="72.0" stroke="#27364a" stroke-width="1"/>
+<text x="68" y="77.0" fill="#94a3b8" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" text-anchor="end">1</text>
+<text x="928.0" y="508" fill="#94a3b8" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" text-anchor="middle">Jul 18</text>
+<g class="trend-enter">
+<path d="M 928.0 476.0 L 928.0 476.0 L 928.0 476.0 Z" fill="url(#area)"/>
+<path d="M 928.0 476.0" fill="none" stroke="url(#trend)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.18" filter="url(#trend-glow)"/>
+<path d="M 928.0 476.0" fill="none" stroke="url(#trend)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g class="marker-enter">
+<circle cx="928.0" cy="476.0" r="5" fill="#38bdf8" stroke="#0f172a" stroke-width="2"/>
+<text x="920.0" y="464.0" fill="#38bdf8" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="16" font-weight="600" text-anchor="end">0</text>
+</g>
+<text x="928" y="524" fill="#94a3b8" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="end">Updated 2026-07-18</text>
 </svg>
