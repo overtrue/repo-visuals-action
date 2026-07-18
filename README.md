@@ -28,6 +28,8 @@ jobs:
           github-token: ${{ github.token }}
           output-branch: star-history
           output-path: .
+          chart-style: gradient
+          animate: "true"
 ```
 
 The first run starts with the current UTC day's star count. Later runs append or replace that day's count, so the stored history becomes the source for future charts.
@@ -52,6 +54,18 @@ The output branch contains:
 
 When `output-path` is set, all three files are written below that repository-relative directory. For example, `output-path: assets/stars` publishes `assets/stars/star-history-light.svg`.
 
+## SVG styles
+
+The renderer is dependency-free TypeScript and emits self-contained SVG files:
+
+| Style | Look |
+| --- | --- |
+| `classic` | Warm area chart compatible with the original design. |
+| `minimal` | Crisp line-only chart with reduced decoration. |
+| `gradient` | Layered green-to-blue trend with a subtle static glow. |
+
+`animate: "true"` adds a one-time transform-and-opacity reveal. It never loops and automatically disables itself for `prefers-reduced-motion`. Set it to `"false"` for fully static SVG output.
+
 ## README image
 
 ```html
@@ -71,6 +85,8 @@ For stronger supply-chain security, pin the action to a full commit SHA instead 
 | `stargazers-token` | unset | Admin or collaborator user token used only for historical bootstrap. |
 | `output-branch` | `star-history` | Branch used for generated artifacts. |
 | `output-path` | `.` | Directory inside the output branch. |
+| `chart-style` | `classic` | SVG style: `classic`, `minimal`, or `gradient`. |
+| `animate` | `true` | Add a reduced-motion-aware SVG entrance animation. |
 | `bootstrap` | `false` | Fetch historical stargazer timestamps if history is missing. |
 | `commit-message` | `chore: update star history` | Artifact commit message. |
 

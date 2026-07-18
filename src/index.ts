@@ -4,6 +4,7 @@ import { GitHubClient } from "./github.ts";
 import { validateRepository } from "./history.ts";
 import { validateBranch, validateOutputPath } from "./paths.ts";
 import { runAction } from "./run.ts";
+import { validateChartStyle } from "./svg.ts";
 
 async function main(): Promise<void> {
   try {
@@ -18,6 +19,7 @@ async function main(): Promise<void> {
     const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
     const outputBranch = validateBranch(core.getInput("output-branch") || "star-history");
     const outputPath = validateOutputPath(core.getInput("output-path") || ".");
+    const chartStyle = validateChartStyle(core.getInput("chart-style") || "classic");
     const commitMessage = core.getInput("commit-message") || "chore: update star history";
     if (!commitMessage.trim() || /[\u0000-\u001f\u007f]/.test(commitMessage)) {
       throw new Error("commit-message must be a non-empty single line");
@@ -31,6 +33,8 @@ async function main(): Promise<void> {
         outputBranch,
         outputPath,
         bootstrap: core.getBooleanInput("bootstrap"),
+        chartStyle,
+        animate: core.getBooleanInput("animate"),
         commitMessage,
         today: new Date().toISOString().slice(0, 10),
       },

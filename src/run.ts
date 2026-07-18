@@ -7,7 +7,7 @@ import {
 } from "./history.ts";
 import type { Artifact, StarHistoryClient } from "./github.ts";
 import { outputFile, rawUrl } from "./paths.ts";
-import { renderSvg } from "./svg.ts";
+import { renderSvg, type ChartStyle } from "./svg.ts";
 
 export interface ActionInputs {
   repository: string;
@@ -15,6 +15,8 @@ export interface ActionInputs {
   outputBranch: string;
   outputPath: string;
   bootstrap: boolean;
+  chartStyle: ChartStyle;
+  animate: boolean;
   commitMessage: string;
   today: string;
 }
@@ -62,8 +64,18 @@ export async function runAction(
   history = mergeSnapshot(history, inputs.today, stars);
   const artifacts: Artifact[] = [
     { path: historyPath, content: `${JSON.stringify(history, null, 2)}\n` },
-    { path: lightPath, content: renderSvg(history) },
-    { path: darkPath, content: renderSvg(history, true) },
+    {
+      path: lightPath,
+      content: renderSvg(history, { style: inputs.chartStyle, animate: inputs.animate }),
+    },
+    {
+      path: darkPath,
+      content: renderSvg(history, {
+        dark: true,
+        style: inputs.chartStyle,
+        animate: inputs.animate,
+      }),
+    },
   ];
   const published = await client.publishArtifacts(
     inputs.outputBranch,
