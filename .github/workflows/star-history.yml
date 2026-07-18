@@ -22,3 +22,5 @@ jobs:
           github-token: ${{ github.token }}
           output-branch: star-history
           output-path: charts
+          chart-style: gradient
+          animate: "true"

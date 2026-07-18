@@ -21,6 +21,14 @@ inputs:
     description: Repository-relative directory inside the output branch
     required: false
     default: .
+  chart-style:
+    description: SVG chart style (classic, minimal, or gradient)
+    required: false
+    default: classic
+  animate:
+    description: Add a reduced-motion-aware SVG entrance animation
+    required: false
+    default: "true"
   bootstrap:
     description: Fetch historical timestamps with stargazers-token when no history exists
     required: false
