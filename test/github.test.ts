@@ -8,6 +8,7 @@ interface RequestRecord {
   method: string;
   body: unknown;
   accept: string | null;
+  authorization: string | null;
 }
 
 function jsonResponse(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
@@ -15,6 +16,12 @@ function jsonResponse(body: unknown, status = 200, headers: Record<string, strin
     status,
     headers: { "content-type": "application/json", ...headers },
   });
+}
+
+const pngAvatar = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+function imageResponse(body: BodyInit = pngAvatar, contentType = "image/png", status = 200): Response {
+  return new Response(body, { status, headers: { "content-type": contentType } });
 }
 
 function fakeFetch(responses: Response[], records: RequestRecord[]): typeof fetch {
@@ -28,6 +35,7 @@ function fakeFetch(responses: Response[], records: RequestRecord[]): typeof fetc
       method: init?.method ?? "GET",
       body: typeof init?.body === "string" ? JSON.parse(init.body) : undefined,
       accept: new Headers(init?.headers).get("accept"),
+      authorization: new Headers(init?.headers).get("authorization"),
     });
     return response;
   }) as typeof fetch;
@@ -135,6 +143,134 @@ test("paginates timestamped stargazers with the star media type", async () => {
   assert.equal((await client.fetchStargazerTimestamps()).length, 101);
   assert.match(records[1]?.url ?? "", /page=2$/);
   assert.equal(records[0]?.accept, "application/vnd.github.star+json");
+});
+
+test("paginates contributors, excludes bots, and embeds resized avatars without the token", async () => {
+  const records: RequestRecord[] = [];
+  const botPage = Array.from({ length: 100 }, (_, index) => ({
+    login: `bot-${index}[bot]`,
+    avatar_url: `https://avatars.githubusercontent.com/u/${index + 1}`,
+    contributions: 1,
+    type: "Bot",
+  }));
+  const client = new GitHubClient(
+    "token",
+    "rustfs/rustfs",
+    "https://api.github.com",
+    fakeFetch(
+      [
+        jsonResponse(botPage),
+        jsonResponse([
+          {
+            login: "overtrue",
+            avatar_url: "https://avatars.githubusercontent.com/u/1472352?v=4",
+            contributions: 1516,
+            type: "User",
+          },
+        ]),
+        imageResponse(pngAvatar, "image/gif"),
+      ],
+      records,
+    ),
+  );
+
+  assert.deepEqual(await client.fetchContributors(10), [
+    {
+      login: "overtrue",
+      contributions: 1516,
+      avatarDataUrl: `data:image/png;base64,${pngAvatar.toString("base64")}`,
+    },
+  ]);
+  assert.match(records[1]?.url ?? "", /page=2$/);
+  assert.match(records[2]?.url ?? "", /[?&]s=64(?:&|$)/);
+  assert.equal(records[0]?.authorization, "Bearer token");
+  assert.equal(records[2]?.authorization, null);
+});
+
+test("does not fetch an untrusted contributor avatar URL", async () => {
+  const records: RequestRecord[] = [];
+  const client = new GitHubClient(
+    "token",
+    "rustfs/rustfs",
+    "https://api.github.com",
+    fakeFetch(
+      [
+        jsonResponse([
+          {
+            login: "octocat",
+            avatar_url: "https://example.com/avatar.png",
+            contributions: 1,
+            type: "User",
+          },
+        ]),
+      ],
+      records,
+    ),
+  );
+
+  assert.deepEqual(await client.fetchContributors(1), [
+    { login: "octocat", contributions: 1, avatarDataUrl: null },
+  ]);
+  assert.equal(records.length, 1);
+});
+
+test("returns an empty contributor list for an empty repository", async () => {
+  const client = new GitHubClient(
+    "token",
+    "rustfs/empty",
+    "https://api.github.com",
+    fakeFetch([new Response(null, { status: 204 })], []),
+  );
+
+  assert.deepEqual(await client.fetchContributors(10), []);
+});
+
+test("rejects oversized contributor avatars", async () => {
+  const contributor = {
+    login: "octocat",
+    avatar_url: "https://avatars.githubusercontent.com/u/1",
+    contributions: 1,
+    type: "User",
+  };
+  const client = new GitHubClient(
+    "token",
+    "rustfs/rustfs",
+    "https://api.github.com",
+    fakeFetch(
+      [jsonResponse([contributor]), imageResponse("x".repeat(65_537))],
+      [],
+    ),
+  );
+
+  assert.deepEqual(await client.fetchContributors(1), [
+    { login: "octocat", contributions: 1, avatarDataUrl: null },
+  ]);
+});
+
+test("rejects animated contributor avatars", async () => {
+  const client = new GitHubClient(
+    "token",
+    "rustfs/rustfs",
+    "https://api.github.com",
+    fakeFetch(
+      [
+        jsonResponse([
+          {
+            login: "octocat",
+            avatar_url: "https://avatars.githubusercontent.com/u/1",
+            contributions: 1,
+            type: "User",
+          },
+        ]),
+        imageResponse("GIF89a", "image/gif"),
+      ],
+      [],
+    ),
+  );
+
+  assert.deepEqual(await client.fetchContributors(1), [
+    { login: "octocat", contributions: 1, avatarDataUrl: null },
+  ]);
 });
 
 test("loads history from the exact output-branch commit", async () => {

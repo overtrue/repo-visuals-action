@@ -24,3 +24,4 @@ jobs:
           output-path: charts
           chart-style: gradient
           animate: "true"
+          contributors: "true"

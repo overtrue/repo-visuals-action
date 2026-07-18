@@ -1,87 +1,14 @@
 import { dayFromNumber, dayNumber, type StarHistory } from "./history.ts";
+import { paletteFor, type ChartStyle, type Palette } from "./theme.ts";
+
+export { CHART_STYLES, validateChartStyle, type ChartStyle } from "./theme.ts";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-export const CHART_STYLES = ["classic", "minimal", "gradient"] as const;
-export type ChartStyle = (typeof CHART_STYLES)[number];
 
 export interface SvgOptions {
   dark?: boolean;
   style?: ChartStyle;
   animate?: boolean;
-}
-
-interface Palette {
-  background: string;
-  foreground: string;
-  muted: string;
-  grid: string;
-  start: string;
-  end: string;
-}
-
-const PALETTES: Record<ChartStyle, { light: Palette; dark: Palette }> = {
-  classic: {
-    light: {
-      background: "#ffffff",
-      foreground: "#24292f",
-      muted: "#57606a",
-      grid: "#d8dee4",
-      start: "#d84a3a",
-      end: "#d84a3a",
-    },
-    dark: {
-      background: "#0d1117",
-      foreground: "#e6edf3",
-      muted: "#8b949e",
-      grid: "#30363d",
-      start: "#e05d44",
-      end: "#e05d44",
-    },
-  },
-  minimal: {
-    light: {
-      background: "#ffffff",
-      foreground: "#24292f",
-      muted: "#57606a",
-      grid: "#d8dee4",
-      start: "#2563eb",
-      end: "#2563eb",
-    },
-    dark: {
-      background: "#0d1117",
-      foreground: "#e6edf3",
-      muted: "#8b949e",
-      grid: "#30363d",
-      start: "#60a5fa",
-      end: "#60a5fa",
-    },
-  },
-  gradient: {
-    light: {
-      background: "#f8fafc",
-      foreground: "#172033",
-      muted: "#526072",
-      grid: "#dbe4ee",
-      start: "#059669",
-      end: "#0284c7",
-    },
-    dark: {
-      background: "#0f172a",
-      foreground: "#f8fafc",
-      muted: "#94a3b8",
-      grid: "#27364a",
-      start: "#3ecf8e",
-      end: "#38bdf8",
-    },
-  },
-};
-
-export function validateChartStyle(value: string): ChartStyle {
-  if ((CHART_STYLES as readonly string[]).includes(value)) {
-    return value as ChartStyle;
-  }
-  throw new Error(`chart-style must be one of: ${CHART_STYLES.join(", ")}`);
 }
 
 export function formatCount(value: number): string {
@@ -179,7 +106,7 @@ export function renderSvg(history: StarHistory, options: SvgOptions = {}): strin
   const bottom = 64;
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
-  const palette = PALETTES[style][dark ? "dark" : "light"];
+  const palette = paletteFor(style, dark);
   const onePoint = first.dayNumber === last.dayNumber;
 
   const coordinates = (day: number, count: number): [number, number] => [

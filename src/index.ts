@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 
+import { DEFAULT_CONTRIBUTORS_LIMIT, validateContributorsLimit } from "./contributors.ts";
 import { GitHubClient } from "./github.ts";
 import { validateRepository } from "./history.ts";
 import { validateBranch, validateOutputPath } from "./paths.ts";
@@ -20,6 +21,10 @@ async function main(): Promise<void> {
     const outputBranch = validateBranch(core.getInput("output-branch") || "star-history");
     const outputPath = validateOutputPath(core.getInput("output-path") || ".");
     const chartStyle = validateChartStyle(core.getInput("chart-style") || "classic");
+    const contributors = core.getBooleanInput("contributors");
+    const contributorsLimit = validateContributorsLimit(
+      core.getInput("contributors-limit") || String(DEFAULT_CONTRIBUTORS_LIMIT),
+    );
     const commitMessage = core.getInput("commit-message") || "chore: update star history";
     if (!commitMessage.trim() || /[\u0000-\u001f\u007f]/.test(commitMessage)) {
       throw new Error("commit-message must be a non-empty single line");
@@ -33,6 +38,8 @@ async function main(): Promise<void> {
         outputBranch,
         outputPath,
         bootstrap: core.getBooleanInput("bootstrap"),
+        contributors,
+        contributorsLimit,
         chartStyle,
         animate: core.getBooleanInput("animate"),
         commitMessage,
@@ -47,10 +54,16 @@ async function main(): Promise<void> {
     core.setOutput("light-url", result.lightUrl);
     core.setOutput("dark-url", result.darkUrl);
     core.setOutput("history-url", result.historyUrl);
+    if (result.contributors !== null) {
+      core.setOutput("contributors", result.contributors);
+      core.setOutput("contributors-light-url", result.contributorsLightUrl);
+      core.setOutput("contributors-dark-url", result.contributorsDarkUrl);
+    }
+    const contributorSummary = result.contributors === null ? "" : ` and ${result.contributors} contributors`;
     core.info(
       result.changed
-        ? `Published star history for ${repository}: ${result.stars} stars`
-        : `Star history is already current: ${result.stars} stars`,
+        ? `Published repository visuals for ${repository}: ${result.stars} stars${contributorSummary}`
+        : `Repository visuals are already current: ${result.stars} stars${contributorSummary}`,
     );
   } catch (error) {
     core.setFailed(error instanceof Error ? error.message : String(error));

@@ -7,11 +7,14 @@ import type {
   PublishResult,
   StarHistoryClient,
 } from "../src/github.ts";
+import type { Contributor } from "../src/contributors.ts";
 import { runAction, type ActionInputs } from "../src/run.ts";
 
 class FakeClient implements StarHistoryClient {
   artifacts: Artifact[] = [];
   bootstrapCalls = 0;
+  contributorCalls = 0;
+  contributorLimit: number | null = null;
   private readonly loaded: LoadedHistory;
   private readonly stars: number;
 
@@ -33,6 +36,18 @@ class FakeClient implements StarHistoryClient {
     return this.stars;
   }
 
+  async fetchContributors(limit: number): Promise<Contributor[]> {
+    this.contributorCalls += 1;
+    this.contributorLimit = limit;
+    return [
+      {
+        login: "overtrue",
+        contributions: 1516,
+        avatarDataUrl: `data:image/png;base64,${Buffer.from("avatar").toString("base64")}`,
+      },
+    ];
+  }
+
   async publishArtifacts(
     _branch: string,
     _parentSha: string | null,
@@ -50,6 +65,8 @@ const inputs = (overrides: Partial<ActionInputs> = {}): ActionInputs => ({
   outputBranch: "star-history",
   outputPath: "assets/stars",
   bootstrap: true,
+  contributors: true,
+  contributorsLimit: 150,
   chartStyle: "gradient",
   animate: true,
   commitMessage: "chore: update star history",
@@ -68,22 +85,32 @@ test("bootstraps and publishes all artifacts below output-path", async () => {
       "assets/stars/history.json",
       "assets/stars/star-history-light.svg",
       "assets/stars/star-history-dark.svg",
+      "assets/stars/contributors-light.svg",
+      "assets/stars/contributors-dark.svg",
     ],
   );
   const stored = JSON.parse(client.artifacts[0]?.content ?? "") as { points: [string, number][] };
   assert.deepEqual(stored.points.at(-1), ["2026-07-18", 29_944]);
   assert.match(client.artifacts[1]?.content ?? "", /data-style="gradient"/);
   assert.match(client.artifacts[1]?.content ?? "", /prefers-reduced-motion/);
+  assert.match(client.artifacts[3]?.content ?? "", /overtrue, 1516 contributions/);
   assert.match(result.lightUrl, /assets\/stars\/star-history-light\.svg$/);
+  assert.match(result.contributorsLightUrl ?? "", /assets\/stars\/contributors-light\.svg$/);
+  assert.equal(result.contributors, 1);
+  assert.equal(client.contributorLimit, 150);
 });
 
 test("can start tracking without historical bootstrap", async () => {
   const client = new FakeClient({ history: null, parentSha: null }, 0);
-  await runAction(client, inputs({ bootstrap: false }));
+  const result = await runAction(client, inputs({ bootstrap: false, contributors: false }));
 
   assert.equal(client.bootstrapCalls, 0);
   const stored = JSON.parse(client.artifacts[0]?.content ?? "") as { points: [string, number][] };
   assert.deepEqual(stored.points, [["2026-07-18", 0]]);
+  assert.equal(client.contributorCalls, 0);
+  assert.equal(result.contributors, null);
+  assert.equal(result.contributorsLightUrl, null);
+  assert.equal(result.contributorsDarkUrl, null);
 });
 
 test("requires a user token only when historical bootstrap is needed", async () => {

@@ -1,5 +1,5 @@
-name: Self-hosted Star History
-description: Generate and publish star history charts using only GitHub Actions and the GitHub API
+name: Self-hosted Repository Visuals
+description: Generate and publish star history charts and contributor walls using GitHub Actions and the GitHub API
 author: overtrue
 
 branding:
@@ -29,6 +29,14 @@ inputs:
     description: Add a reduced-motion-aware SVG entrance animation
     required: false
     default: "true"
+  contributors:
+    description: Generate light and dark contributor wall SVG files
+    required: false
+    default: "false"
+  contributors-limit:
+    description: Maximum number of non-bot contributors to include (1-200)
+    required: false
+    default: "150"
   bootstrap:
     description: Fetch historical timestamps with stargazers-token when no history exists
     required: false
@@ -51,6 +59,12 @@ outputs:
     description: Raw URL for the dark chart
   history-url:
     description: Raw URL for the aggregated history JSON
+  contributors:
+    description: Number of contributors included in the wall
+  contributors-light-url:
+    description: Raw URL for the light contributor wall
+  contributors-dark-url:
+    description: Raw URL for the dark contributor wall
 
 runs:
   using: node24
