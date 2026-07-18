@@ -19252,9 +19252,10 @@ function info(message) {
 }
 
 // src/theme.ts
-var CHART_STYLES = ["classic", "minimal", "gradient"];
-var PALETTES = {
+var CHART_VARIANTS = ["area", "line", "glow"];
+var THEMES = {
   classic: {
+    variant: "area",
     light: {
       background: "#ffffff",
       foreground: "#24292f",
@@ -19273,6 +19274,7 @@ var PALETTES = {
     }
   },
   minimal: {
+    variant: "line",
     light: {
       background: "#ffffff",
       foreground: "#24292f",
@@ -19291,6 +19293,7 @@ var PALETTES = {
     }
   },
   gradient: {
+    variant: "glow",
     light: {
       background: "#f8fafc",
       foreground: "#172033",
@@ -19307,10 +19310,138 @@ var PALETTES = {
       start: "#3ecf8e",
       end: "#38bdf8"
     }
+  },
+  midnight: {
+    variant: "glow",
+    light: {
+      background: "#f5f3ff",
+      foreground: "#1e1b4b",
+      muted: "#6d68a3",
+      grid: "#e6e1fb",
+      start: "#6366f1",
+      end: "#a855f7"
+    },
+    dark: {
+      background: "#0b0a1f",
+      foreground: "#ede9fe",
+      muted: "#a29ccc",
+      grid: "#241f45",
+      start: "#818cf8",
+      end: "#c084fc"
+    }
+  },
+  sunset: {
+    variant: "glow",
+    light: {
+      background: "#fff7ed",
+      foreground: "#431407",
+      muted: "#9a6a4f",
+      grid: "#fbe2cc",
+      start: "#f59e0b",
+      end: "#ec4899"
+    },
+    dark: {
+      background: "#1b0f0a",
+      foreground: "#ffedd5",
+      muted: "#cb9d88",
+      grid: "#3d2418",
+      start: "#fbbf24",
+      end: "#f472b6"
+    }
+  },
+  ocean: {
+    variant: "area",
+    light: {
+      background: "#f0fdfa",
+      foreground: "#042f2e",
+      muted: "#4a7d78",
+      grid: "#c8ede8",
+      start: "#06b6d4",
+      end: "#0ea5e9"
+    },
+    dark: {
+      background: "#04141a",
+      foreground: "#ccfbf1",
+      muted: "#7fb8b5",
+      grid: "#123038",
+      start: "#22d3ee",
+      end: "#38bdf8"
+    }
+  },
+  forest: {
+    variant: "area",
+    light: {
+      background: "#f7fee7",
+      foreground: "#14320a",
+      muted: "#5c7a44",
+      grid: "#dcefc4",
+      start: "#65a30d",
+      end: "#16a34a"
+    },
+    dark: {
+      background: "#08160a",
+      foreground: "#ecfccb",
+      muted: "#8bab73",
+      grid: "#1a2e15",
+      start: "#a3e635",
+      end: "#4ade80"
+    }
+  },
+  flame: {
+    variant: "glow",
+    light: {
+      background: "#fff7ed",
+      foreground: "#431407",
+      muted: "#9a6a4f",
+      grid: "#fbdcc9",
+      start: "#fb923c",
+      end: "#ef4444"
+    },
+    dark: {
+      background: "#170a04",
+      foreground: "#ffe4d5",
+      muted: "#c99a86",
+      grid: "#3a1a0e",
+      start: "#fdba74",
+      end: "#f87171"
+    }
+  },
+  mono: {
+    variant: "line",
+    light: {
+      background: "#ffffff",
+      foreground: "#111827",
+      muted: "#6b7280",
+      grid: "#e5e7eb",
+      start: "#374151",
+      end: "#111827"
+    },
+    dark: {
+      background: "#0a0a0a",
+      foreground: "#f4f4f5",
+      muted: "#a1a1aa",
+      grid: "#262626",
+      start: "#d4d4d8",
+      end: "#fafafa"
+    }
   }
 };
+var CHART_STYLES = Object.keys(THEMES);
+function themeFor(style) {
+  return THEMES[style];
+}
 function paletteFor(style, dark) {
-  return PALETTES[style][dark ? "dark" : "light"];
+  return dark ? THEMES[style].dark : THEMES[style].light;
+}
+function resolvePalette(style, dark, overrides = {}) {
+  const base = paletteFor(style, dark);
+  const background = dark ? overrides.backgroundDark : overrides.background;
+  const accent = dark ? overrides.accentDark : overrides.accent;
+  return {
+    ...base,
+    ...background ? { background } : {},
+    ...accent ? { start: accent, end: accent } : {}
+  };
 }
 function validateChartStyle(value) {
   if (CHART_STYLES.includes(value)) {
@@ -19318,11 +19449,34 @@ function validateChartStyle(value) {
   }
   throw new Error(`chart-style must be one of: ${CHART_STYLES.join(", ")}`);
 }
+function validateChartVariant(value) {
+  if (CHART_VARIANTS.includes(value)) {
+    return value;
+  }
+  throw new Error(`chart-variant must be one of: ${CHART_VARIANTS.join(", ")}`);
+}
+var COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+function validateColor(value, label) {
+  const color = value.trim();
+  if (!COLOR_PATTERN.test(color)) {
+    throw new Error(`${label} must be a hex color such as #0d1117`);
+  }
+  return color;
+}
 
 // src/contributors.ts
 var DEFAULT_CONTRIBUTORS_LIMIT = 150;
 var MAX_CONTRIBUTORS_LIMIT = 200;
+var AVATAR_SHAPES = ["circle", "squircle", "square"];
+var DEFAULT_CONTRIBUTOR_LAYOUT = {
+  avatarSize: 48,
+  gap: 8,
+  columns: 16,
+  padding: 32,
+  shape: "circle"
+};
 var AVATAR_DATA_URL = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+var FONT = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 function validateContributorsLimit(value) {
   if (!/^\d+$/.test(value)) {
     throw new Error("contributors-limit must be an integer");
@@ -19333,98 +19487,143 @@ function validateContributorsLimit(value) {
   }
   return limit;
 }
+function validateInteger(value, label, min, max) {
+  if (!/^\d+$/.test(value.trim())) {
+    throw new Error(`${label} must be an integer`);
+  }
+  const parsed = Number(value);
+  if (parsed < min || parsed > max) {
+    throw new Error(`${label} must be between ${min} and ${max}`);
+  }
+  return parsed;
+}
+function validateAvatarSize(value) {
+  return validateInteger(value, "avatar-size", 24, 128);
+}
+function validateAvatarGap(value) {
+  return validateInteger(value, "avatar-gap", 0, 48);
+}
+function validateContributorsColumns(value) {
+  return validateInteger(value, "contributors-columns", 4, 32);
+}
+function validatePadding(value) {
+  return validateInteger(value, "padding", 8, 96);
+}
+function validateAvatarShape(value) {
+  if (AVATAR_SHAPES.includes(value)) {
+    return value;
+  }
+  throw new Error(`avatar-shape must be one of: ${AVATAR_SHAPES.join(", ")}`);
+}
 function escapeXml(value) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+}
+function cornerRadius(shape, size) {
+  if (shape === "circle") {
+    return size / 2;
+  }
+  if (shape === "squircle") {
+    return Math.round(size * 0.3);
+  }
+  return Math.round(size * 0.16);
 }
 function renderContributorsSvg(contributors, repository, options = {}) {
   const dark = options.dark ?? false;
   const style = options.style ?? "classic";
   const animate = options.animate ?? true;
-  const palette = paletteFor(style, dark);
-  const width = 960;
-  const left = 32;
-  const right = 32;
-  const top = 80;
-  const bottom = 32;
-  const avatarSize = 48;
-  const gap = 8;
-  const columns = 16;
+  const palette = resolvePalette(style, dark, options.overrides);
+  const title = (options.title ?? "Contributors").trim() || "Contributors";
+  const layout = { ...DEFAULT_CONTRIBUTOR_LAYOUT, ...options.layout };
+  const { avatarSize, gap, columns, padding, shape } = layout;
+  const radius = cornerRadius(shape, avatarSize);
+  const headerHeight = 64;
+  const gridTop = padding + headerHeight;
   const rows = Math.max(1, Math.ceil(contributors.length / columns));
-  const gridHeight = contributors.length === 0 ? 80 : rows * avatarSize + (rows - 1) * gap;
-  const height = top + gridHeight + bottom;
-  const font = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  const gridHeight = contributors.length === 0 ? 72 : rows * avatarSize + (rows - 1) * gap;
+  const width = Math.max(420, padding * 2 + columns * avatarSize + (columns - 1) * gap);
+  const height = gridTop + gridHeight + padding;
+  const cardRadius = 16;
   const countLabel = `${contributors.length} ${contributors.length === 1 ? "contributor" : "contributors"}`;
   const topContributors = contributors.slice(0, 10).map(({ login }) => login).join(", ");
   const description = contributors.length === 0 ? `No contributors found for ${repository}.` : `${countLabel} for ${repository}. Top contributors: ${topContributors}.`;
   const wallClass = animate ? ' class="wall-enter"' : "";
   const elements = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-animated="${animate}">`,
-    `<title id="title">${escapeXml(repository)} contributors</title>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-shape="${shape}" data-animated="${animate}">`,
+    `<title id="title">${escapeXml(repository)} ${escapeXml(title)}</title>`,
     `<desc id="description">${escapeXml(description)}</desc>`,
     "<defs>",
     `<linearGradient id="wall-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${palette.start}"/><stop offset="100%" stop-color="${palette.end}"/></linearGradient>`,
-    `<clipPath id="avatar-clip"><circle cx="24" cy="24" r="24"/></clipPath>`
+    `<clipPath id="avatar-clip"><rect width="${avatarSize}" height="${avatarSize}" rx="${radius}"/></clipPath>`,
+    `<radialGradient id="wall-surface-glow" cx="80%" cy="0%" r="90%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.10"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
+    "</defs>"
   ];
-  if (style === "gradient") {
-    elements.push(
-      `<radialGradient id="wall-surface-glow" cx="76%" cy="12%" r="72%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.12"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`
-    );
-  }
-  elements.push("</defs>");
   if (animate) {
     elements.push(
       "<style>",
-      ".wall-enter{transform-box:fill-box;transform-origin:center;animation:wall-enter 480ms cubic-bezier(0.16,1,0.3,1)}",
-      "@keyframes wall-enter{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}",
+      ".wall-enter{transform-box:fill-box;transform-origin:center;animation:wall-enter 520ms cubic-bezier(0.16,1,0.3,1)}",
+      "@keyframes wall-enter{from{opacity:.35;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}",
       "@media (prefers-reduced-motion:reduce){.wall-enter{animation:none!important}}",
       "</style>"
     );
   }
   elements.push(
-    `<rect width="${width}" height="${height}" fill="${palette.background}" rx="${style === "gradient" ? 16 : 12}"/>`
+    `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" fill="${palette.background}" stroke="${palette.grid}" stroke-width="1" rx="${cardRadius}"/>`,
+    `<rect width="${width}" height="${Math.round(height / 2)}" fill="url(#wall-surface-glow)" rx="${cardRadius}"/>`
   );
-  if (style === "gradient") {
-    elements.push(`<rect width="${width}" height="${height}" fill="url(#wall-surface-glow)" rx="16"/>`);
-  }
+  const leadLabel = contributors.length > 0 && contributors[0] ? `Led by ${escapeXml(contributors[0].login)}` : "";
   elements.push(
-    `<g transform="translate(${left} 18)" fill="none" stroke="url(#wall-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>`,
-    `<text x="${left + 36}" y="40" fill="${palette.foreground}" font-family="${font}" font-size="24" font-weight="600">Contributors</text>`,
-    `<text x="${left + 36}" y="62" fill="${palette.muted}" font-family="${font}" font-size="14">${escapeXml(repository)}</text>`,
-    `<text x="${width - right}" y="40" fill="${palette.muted}" font-family="${font}" font-size="14" font-weight="500" text-anchor="end">${countLabel}</text>`,
-    `<g${wallClass}>`
+    `<g transform="translate(${padding} ${padding - 2})" fill="none" stroke="url(#wall-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>`,
+    `<text x="${padding + 36}" y="${padding + 12}" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700">${escapeXml(title)}</text>`,
+    `<text x="${padding + 36}" y="${padding + 34}" fill="${palette.muted}" font-family="${FONT}" font-size="13">${escapeXml(repository)}</text>`,
+    `<text x="${width - padding}" y="${padding + 8}" fill="${palette.foreground}" font-family="${FONT}" font-size="18" font-weight="700" text-anchor="end">${countLabel}</text>`
   );
+  if (leadLabel) {
+    elements.push(
+      `<text x="${width - padding}" y="${padding + 30}" fill="${palette.muted}" font-family="${FONT}" font-size="13" text-anchor="end">${leadLabel}</text>`
+    );
+  }
+  elements.push(`<g${wallClass}>`);
   if (contributors.length === 0) {
     elements.push(
-      `<text x="${width / 2}" y="${top + 36}" fill="${palette.muted}" font-family="${font}" font-size="16" text-anchor="middle">No contributors yet</text>`
+      `<text x="${width / 2}" y="${gridTop + 36}" fill="${palette.muted}" font-family="${FONT}" font-size="16" text-anchor="middle">No contributors yet</text>`
     );
   } else {
+    const center = avatarSize / 2;
+    const fontSize = Math.max(11, Math.round(avatarSize * 0.34));
     for (const [index, contributor] of contributors.entries()) {
       const column = index % columns;
       const row = Math.floor(index / columns);
-      const x = left + column * (avatarSize + gap);
-      const y = top + row * (avatarSize + gap);
+      const x = padding + column * (avatarSize + gap);
+      const y = gridTop + row * (avatarSize + gap);
       const login = escapeXml(contributor.login);
       const initial = escapeXml(contributor.login.slice(0, 1).toUpperCase() || "?");
       const contributionLabel = `${contributor.contributions} ${contributor.contributions === 1 ? "contribution" : "contributions"}`;
+      const topThree = index < 3;
       elements.push(
-        `<g transform="translate(${x} ${y})">`,
-        `<title>${login}, ${contributionLabel}</title>`,
-        `<circle cx="24" cy="24" r="24" fill="url(#wall-accent)" opacity="0.20"/>`
+        `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">`,
+        `<title>#${index + 1} ${login}, ${contributionLabel}</title>`,
+        `<rect width="${avatarSize}" height="${avatarSize}" rx="${radius}" fill="url(#wall-accent)" opacity="0.18"/>`
       );
       if (contributor.avatarDataUrl && AVATAR_DATA_URL.test(contributor.avatarDataUrl)) {
         elements.push(
-          `<image width="48" height="48" href="${contributor.avatarDataUrl}" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar-clip)"/>`
+          `<image width="${avatarSize}" height="${avatarSize}" href="${contributor.avatarDataUrl}" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar-clip)"/>`
         );
       } else {
         elements.push(
-          `<text x="24" y="30" fill="${palette.foreground}" font-family="${font}" font-size="16" font-weight="600" text-anchor="middle">${initial}</text>`
+          `<text x="${center}" y="${center + fontSize / 3}" fill="${palette.foreground}" font-family="${FONT}" font-size="${fontSize}" font-weight="600" text-anchor="middle">${initial}</text>`
         );
       }
-      elements.push(
-        `<circle cx="24" cy="24" r="23.5" fill="none" stroke="${palette.grid}"/>`,
-        "</g>"
-      );
+      if (topThree) {
+        elements.push(
+          `<rect x="0.75" y="0.75" width="${avatarSize - 1.5}" height="${avatarSize - 1.5}" rx="${Math.max(0, radius - 0.75)}" fill="none" stroke="url(#wall-accent)" stroke-width="2.5"/>`
+        );
+      } else {
+        elements.push(
+          `<rect x="0.5" y="0.5" width="${avatarSize - 1}" height="${avatarSize - 1}" rx="${Math.max(0, radius - 0.5)}" fill="none" stroke="${palette.grid}"/>`
+        );
+      }
+      elements.push("</g>");
     }
   }
   elements.push("</g>", "</svg>");
@@ -19938,6 +20137,7 @@ function rawUrl(serverUrl, repository, branch, path) {
 
 // src/svg.ts
 var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var FONT2 = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 function formatCount(value) {
   if (value >= 1e6) {
     return `${Number((value / 1e6).toFixed(1))}M`;
@@ -19946,6 +20146,12 @@ function formatCount(value) {
     return `${Number((value / 1e3).toFixed(1))}K`;
   }
   return String(value);
+}
+function groupThousands(value) {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+function escapeXml2(value) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
 }
 function axisScale(maximum) {
   if (maximum <= 0) {
@@ -19975,19 +20181,75 @@ function dateLabel(day, longRange) {
   }
   return longRange ? `${month} ${day.slice(0, 4)}` : `${month} ${dateText}`;
 }
-function definitions(palette, style, animate) {
+function monthYear(day) {
+  const [year, monthText] = day.split("-");
+  const month = MONTHS[Number(monthText) - 1];
+  return month ? `${month} ${year}` : day;
+}
+function smoothPath(points) {
+  if (points.length < 3) {
+    return points.map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  }
+  const n = points.length;
+  const dx = [];
+  const slope = [];
+  for (let i = 0; i < n - 1; i += 1) {
+    const deltaX = points[i + 1][0] - points[i][0];
+    dx.push(deltaX);
+    slope.push(deltaX === 0 ? 0 : (points[i + 1][1] - points[i][1]) / deltaX);
+  }
+  const tangent = new Array(n).fill(0);
+  tangent[0] = slope[0];
+  tangent[n - 1] = slope[n - 2];
+  for (let i = 1; i < n - 1; i += 1) {
+    tangent[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2;
+  }
+  for (let i = 0; i < n - 1; i += 1) {
+    if (slope[i] === 0) {
+      tangent[i] = 0;
+      tangent[i + 1] = 0;
+      continue;
+    }
+    const a = tangent[i] / slope[i];
+    const b = tangent[i + 1] / slope[i];
+    const h = Math.hypot(a, b);
+    if (h > 3) {
+      const scale = 3 / h;
+      tangent[i] = scale * a * slope[i];
+      tangent[i + 1] = scale * b * slope[i];
+    }
+  }
+  let path = `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
+  for (let i = 0; i < n - 1; i += 1) {
+    const [x0, y0] = points[i];
+    const [x1, y1] = points[i + 1];
+    const controlX1 = x0 + dx[i] / 3;
+    const controlY1 = y0 + tangent[i] * dx[i] / 3;
+    const controlX2 = x1 - dx[i] / 3;
+    const controlY2 = y1 - tangent[i + 1] * dx[i] / 3;
+    path += ` C ${controlX1.toFixed(1)} ${controlY1.toFixed(1)}, ${controlX2.toFixed(1)} ${controlY2.toFixed(1)}, ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  }
+  return path;
+}
+function straightPath(points) {
+  return points.map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+}
+function definitions(palette, variant, animate) {
   const elements = [
     "<defs>",
     `<linearGradient id="trend" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="${palette.start}"/><stop offset="100%" stop-color="${palette.end}"/></linearGradient>`
   ];
-  if (style !== "minimal") {
+  if (variant !== "line") {
     elements.push(
-      `<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${palette.start}" stop-opacity="0.28"/><stop offset="60%" stop-color="${palette.end}" stop-opacity="0.10"/><stop offset="100%" stop-color="${palette.end}" stop-opacity="0.02"/></linearGradient>`
+      `<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${palette.start}" stop-opacity="0.30"/><stop offset="55%" stop-color="${palette.end}" stop-opacity="0.10"/><stop offset="100%" stop-color="${palette.end}" stop-opacity="0.01"/></linearGradient>`
     );
   }
-  if (style === "gradient") {
+  elements.push(
+    `<radialGradient id="marker-halo" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.55"/><stop offset="100%" stop-color="${palette.end}" stop-opacity="0"/></radialGradient>`
+  );
+  if (variant === "glow") {
     elements.push(
-      `<radialGradient id="surface-glow" cx="76%" cy="18%" r="72%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.12"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
+      `<radialGradient id="surface-glow" cx="78%" cy="14%" r="80%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.14"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
       '<filter id="trend-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>'
     );
   }
@@ -19995,11 +20257,14 @@ function definitions(palette, style, animate) {
   if (animate) {
     elements.push(
       "<style>",
-      ".trend-enter{transform-box:fill-box;transform-origin:center;animation:trend-enter 480ms cubic-bezier(0.16,1,0.3,1)}",
-      ".marker-enter{transform-box:fill-box;transform-origin:center;animation:marker-enter 300ms cubic-bezier(0.16,1,0.3,1)}",
-      "@keyframes trend-enter{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}",
-      "@keyframes marker-enter{from{opacity:.6;transform:scale(.82)}to{opacity:1;transform:scale(1)}}",
-      "@media (prefers-reduced-motion:reduce){.trend-enter,.marker-enter{animation:none!important}}",
+      ".trend-enter{transform-box:fill-box;transform-origin:center;animation:trend-enter 520ms cubic-bezier(0.16,1,0.3,1)}",
+      ".marker-enter{transform-box:fill-box;transform-origin:center;animation:marker-enter 320ms cubic-bezier(0.16,1,0.3,1) 200ms both}",
+      ".marker-pulse{transform-box:fill-box;transform-origin:center;animation:marker-pulse 2.6s ease-out infinite}",
+      "@keyframes trend-enter{from{opacity:.35;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}",
+      "@keyframes marker-enter{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}",
+      "@keyframes marker-pulse{0%{opacity:.5;transform:scale(.7)}70%,100%{opacity:0;transform:scale(2.1)}}",
+      "@media (prefers-reduced-motion:reduce){.trend-enter,.marker-enter,.marker-pulse{animation:none!important}}",
+      "@media (prefers-reduced-motion:reduce){.marker-pulse{opacity:0}}",
       "</style>"
     );
   }
@@ -20008,7 +20273,11 @@ function definitions(palette, style, animate) {
 function renderSvg(history, options = {}) {
   const dark = options.dark ?? false;
   const style = options.style ?? "classic";
+  const variant = options.variant ?? themeFor(style).variant;
   const animate = options.animate ?? true;
+  const smooth = options.smooth ?? true;
+  const palette = resolvePalette(style, dark, options.overrides);
+  const title = (options.title ?? "Star History").trim() || "Star History";
   const parsed = history.points.map(([day, count]) => ({ day, dayNumber: dayNumber(day), count }));
   const first = parsed[0];
   const last = parsed.at(-1);
@@ -20021,78 +20290,83 @@ function renderSvg(history, options = {}) {
   const [yMaximum, yStep] = axisScale(maximum);
   const width = 960;
   const height = 540;
-  const left = 80;
-  const right = 32;
-  const top = 72;
-  const bottom = 64;
+  const left = 76;
+  const right = 40;
+  const top = 104;
+  const bottom = 60;
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
-  const palette = paletteFor(style, dark);
   const onePoint = first.dayNumber === last.dayNumber;
   const coordinates = (day, count) => [
     onePoint ? width - right : left + (day - first.dayNumber) / dateSpan * plotWidth,
     top + plotHeight - count / yMaximum * plotHeight
   ];
   const points = parsed.map(({ dayNumber: day, count }) => coordinates(day, count));
-  const linePath = points.map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const linePath = smooth ? smoothPath(points) : straightPath(points);
   const firstCoordinates = points[0];
   const lastCoordinates = points.at(-1);
-  if (!firstCoordinates || !lastCoordinates) {
-    throw new Error("star history must contain at least one point");
-  }
-  const areaPath = `${linePath} L ${lastCoordinates[0].toFixed(1)} ${(top + plotHeight).toFixed(1)} L ${firstCoordinates[0].toFixed(1)} ${(top + plotHeight).toFixed(1)} Z`;
-  const font = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  const baseline = (top + plotHeight).toFixed(1);
+  const areaPath = `${linePath} L ${lastCoordinates[0].toFixed(1)} ${baseline} L ${firstCoordinates[0].toFixed(1)} ${baseline} Z`;
   const trendClass = animate ? ' class="trend-enter"' : "";
   const markerClass = animate ? ' class="marker-enter"' : "";
-  const starFill = style === "minimal" ? "none" : "url(#trend)";
+  const pulseClass = animate ? ' class="marker-pulse"' : "";
+  const cardRadius = variant === "line" ? 14 : 16;
   const elements = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-animated="${animate}">`,
-    `<title id="title">${history.repository} star history</title>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-variant="${variant}" data-animated="${animate}">`,
+    `<title id="title">${escapeXml2(history.repository)} ${escapeXml2(title)}</title>`,
     `<desc id="description">${formatCount(last.count)} stars as of ${last.day}. Daily cumulative star trend.</desc>`,
-    ...definitions(palette, style, animate),
-    `<rect width="${width}" height="${height}" fill="${palette.background}" rx="${style === "gradient" ? 16 : 12}"/>`
+    ...definitions(palette, variant, animate),
+    `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" fill="${palette.background}" stroke="${palette.grid}" stroke-width="1" rx="${cardRadius}"/>`
   ];
-  if (style === "gradient") {
-    elements.push(`<rect width="${width}" height="${height}" fill="url(#surface-glow)" rx="16"/>`);
+  if (variant === "glow") {
+    elements.push(`<rect width="${width}" height="${height}" fill="url(#surface-glow)" rx="${cardRadius}"/>`);
   }
+  const iconFill = variant === "line" ? "none" : "url(#trend)";
   elements.push(
-    `<path d="M12 2.8l2.8 5.7 6.3.9-4.6 4.5 1.1 6.3-5.6-3-5.6 3 1.1-6.3-4.6-4.5 6.3-.9L12 2.8Z" transform="translate(${left} 18) scale(.82)" fill="${starFill}" stroke="url(#trend)" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"/>`,
-    `<text x="${left + 32}" y="40" fill="${palette.foreground}" font-family="${font}" font-size="24" font-weight="600">Star History</text>`,
-    `<text x="${left + 32}" y="60" fill="${palette.muted}" font-family="${font}" font-size="14">${history.repository}</text>`
+    `<path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" transform="translate(${left} 30) scale(.9)" fill="${iconFill}" stroke="url(#trend)" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"/>`,
+    `<text x="${left + 34}" y="46" fill="${palette.foreground}" font-family="${FONT2}" font-size="22" font-weight="700">${escapeXml2(title)}</text>`,
+    `<text x="${left + 34}" y="68" fill="${palette.muted}" font-family="${FONT2}" font-size="13">${escapeXml2(history.repository)}</text>`,
+    `<text x="${width - right}" y="50" fill="${palette.foreground}" font-family="${FONT2}" font-size="30" font-weight="700" text-anchor="end">${groupThousands(last.count)}</text>`,
+    `<text x="${width - right}" y="70" fill="${palette.muted}" font-family="${FONT2}" font-size="12" font-weight="500" letter-spacing="1.5" text-anchor="end">STARS</text>`
   );
   for (let value = 0; value <= yMaximum; value += yStep) {
     const y = top + plotHeight - value / yMaximum * plotHeight;
     elements.push(
-      `<line x1="${left}" y1="${y.toFixed(1)}" x2="${width - right}" y2="${y.toFixed(1)}" stroke="${palette.grid}" stroke-width="1"/>`,
-      `<text x="${left - 12}" y="${(y + 5).toFixed(1)}" fill="${palette.muted}" font-family="${font}" font-size="14" text-anchor="end">${formatCount(value)}</text>`
+      `<line x1="${left}" y1="${y.toFixed(1)}" x2="${width - right}" y2="${y.toFixed(1)}" stroke="${palette.grid}" stroke-width="1" stroke-dasharray="${value === 0 ? "0" : "4 6"}" opacity="${value === 0 ? "1" : "0.7"}"/>`,
+      `<text x="${left - 12}" y="${(y + 4).toFixed(1)}" fill="${palette.muted}" font-family="${FONT2}" font-size="13" text-anchor="end">${formatCount(value)}</text>`
     );
   }
   const longRange = last.dayNumber - first.dayNumber > 90;
   for (const tick of dateTicks(first.dayNumber, last.dayNumber)) {
     const [x] = coordinates(tick, 0);
-    const day = dayFromNumber(tick);
     elements.push(
-      `<text x="${x.toFixed(1)}" y="${top + plotHeight + 32}" fill="${palette.muted}" font-family="${font}" font-size="14" text-anchor="middle">${dateLabel(day, longRange)}</text>`
+      `<text x="${x.toFixed(1)}" y="${top + plotHeight + 28}" fill="${palette.muted}" font-family="${FONT2}" font-size="13" text-anchor="middle">${dateLabel(dayFromNumber(tick), longRange)}</text>`
     );
   }
   elements.push(`<g${trendClass}>`);
-  if (style !== "minimal") {
+  if (variant !== "line") {
     elements.push(`<path d="${areaPath}" fill="url(#area)"/>`);
   }
-  if (style === "gradient") {
+  if (variant === "glow") {
     elements.push(
-      `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.18" filter="url(#trend-glow)"/>`
+      `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.16" filter="url(#trend-glow)"/>`
     );
   }
   elements.push(
-    `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="${style === "minimal" ? 2 : 3}" stroke-linecap="round" stroke-linejoin="round"/>`,
-    "</g>",
+    `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="${variant === "line" ? 2.5 : 3}" stroke-linecap="round" stroke-linejoin="round"/>`,
+    "</g>"
+  );
+  elements.push(
     `<g${markerClass}>`,
-    `<circle cx="${lastCoordinates[0].toFixed(1)}" cy="${lastCoordinates[1].toFixed(1)}" r="5" fill="${palette.end}" stroke="${palette.background}" stroke-width="2"/>`,
-    `<text x="${(lastCoordinates[0] - 8).toFixed(1)}" y="${Math.max(top + 16, lastCoordinates[1] - 12).toFixed(1)}" fill="${palette.end}" font-family="${font}" font-size="16" font-weight="600" text-anchor="end">${formatCount(last.count)}</text>`,
-    "</g>",
-    `<text x="${width - right}" y="${height - 16}" fill="${palette.muted}" font-family="${font}" font-size="12" font-weight="500" text-anchor="end">Updated ${last.day}</text>`,
+    `<circle${pulseClass} cx="${lastCoordinates[0].toFixed(1)}" cy="${lastCoordinates[1].toFixed(1)}" r="9" fill="url(#marker-halo)"/>`,
+    `<circle cx="${lastCoordinates[0].toFixed(1)}" cy="${lastCoordinates[1].toFixed(1)}" r="4.5" fill="${palette.end}" stroke="${palette.background}" stroke-width="2"/>`,
+    "</g>"
+  );
+  const rangeLabel = onePoint ? monthYear(last.day) : `${monthYear(first.day)} \u2013 ${monthYear(last.day)}`;
+  elements.push(
+    `<text x="${left}" y="${height - 18}" fill="${palette.muted}" font-family="${FONT2}" font-size="12" font-weight="500">${rangeLabel}</text>`,
+    `<text x="${width - right}" y="${height - 18}" fill="${palette.muted}" font-family="${FONT2}" font-size="12" font-weight="500" text-anchor="end">Updated ${last.day}</text>`,
     "</svg>"
   );
   return `${elements.join("\n")}
@@ -20127,38 +20401,36 @@ async function runAction(client, inputs, stargazerClient) {
   }
   history = mergeSnapshot(history, inputs.today, stars);
   const contributors = inputs.contributors ? await client.fetchContributors(inputs.contributorsLimit) : null;
+  const chartOptions = {
+    style: inputs.chartStyle,
+    variant: inputs.chartVariant,
+    animate: inputs.animate,
+    smooth: inputs.smooth,
+    title: inputs.chartTitle,
+    overrides: inputs.overrides
+  };
+  const wallOptions = {
+    style: inputs.chartStyle,
+    animate: inputs.animate,
+    title: inputs.contributorsTitle,
+    overrides: inputs.overrides,
+    layout: inputs.contributorLayout
+  };
   const artifacts = [
     { path: historyPath, content: `${JSON.stringify(history, null, 2)}
 ` },
-    {
-      path: lightPath,
-      content: renderSvg(history, { style: inputs.chartStyle, animate: inputs.animate })
-    },
-    {
-      path: darkPath,
-      content: renderSvg(history, {
-        dark: true,
-        style: inputs.chartStyle,
-        animate: inputs.animate
-      })
-    }
+    { path: lightPath, content: renderSvg(history, chartOptions) },
+    { path: darkPath, content: renderSvg(history, { ...chartOptions, dark: true }) }
   ];
   if (contributors) {
     artifacts.push(
       {
         path: contributorsLightPath,
-        content: renderContributorsSvg(contributors, inputs.repository, {
-          style: inputs.chartStyle,
-          animate: inputs.animate
-        })
+        content: renderContributorsSvg(contributors, inputs.repository, wallOptions)
       },
       {
         path: contributorsDarkPath,
-        content: renderContributorsSvg(contributors, inputs.repository, {
-          dark: true,
-          style: inputs.chartStyle,
-          animate: inputs.animate
-        })
+        content: renderContributorsSvg(contributors, inputs.repository, { ...wallOptions, dark: true })
       }
     );
   }
@@ -20182,6 +20454,16 @@ async function runAction(client, inputs, stargazerClient) {
 }
 
 // src/index.ts
+function optionalText(value, label) {
+  const text = value.trim();
+  if (!text) {
+    return void 0;
+  }
+  if (text.length > 80 || /[\u0000-\u001f\u007f]/.test(text)) {
+    throw new Error(`${label} must be a single line of at most 80 characters`);
+  }
+  return text;
+}
 async function main() {
   try {
     const token = getInput("github-token", { required: true });
@@ -20196,10 +20478,53 @@ async function main() {
     const outputBranch = validateBranch(getInput("output-branch") || "star-history");
     const outputPath = validateOutputPath(getInput("output-path") || ".");
     const chartStyle = validateChartStyle(getInput("chart-style") || "classic");
+    const chartVariantInput = getInput("chart-variant");
+    const chartVariant = chartVariantInput ? validateChartVariant(chartVariantInput) : void 0;
+    const chartTitle = optionalText(getInput("chart-title"), "chart-title");
+    const contributorsTitle = optionalText(getInput("contributors-title"), "contributors-title");
+    const smooth = getBooleanInput("smooth");
     const contributors = getBooleanInput("contributors");
     const contributorsLimit = validateContributorsLimit(
       getInput("contributors-limit") || String(DEFAULT_CONTRIBUTORS_LIMIT)
     );
+    const overrides = {};
+    const background = getInput("background-color");
+    if (background) {
+      overrides.background = validateColor(background, "background-color");
+    }
+    const backgroundDark = getInput("background-color-dark");
+    if (backgroundDark) {
+      overrides.backgroundDark = validateColor(backgroundDark, "background-color-dark");
+    }
+    const accent = getInput("accent-color");
+    if (accent) {
+      overrides.accent = validateColor(accent, "accent-color");
+    }
+    const accentDark = getInput("accent-color-dark");
+    if (accentDark) {
+      overrides.accentDark = validateColor(accentDark, "accent-color-dark");
+    }
+    const contributorLayout = {};
+    const avatarSize = getInput("avatar-size");
+    if (avatarSize) {
+      contributorLayout.avatarSize = validateAvatarSize(avatarSize);
+    }
+    const avatarGap = getInput("avatar-gap");
+    if (avatarGap) {
+      contributorLayout.gap = validateAvatarGap(avatarGap);
+    }
+    const columns = getInput("contributors-columns");
+    if (columns) {
+      contributorLayout.columns = validateContributorsColumns(columns);
+    }
+    const padding = getInput("padding");
+    if (padding) {
+      contributorLayout.padding = validatePadding(padding);
+    }
+    const avatarShape = getInput("avatar-shape");
+    if (avatarShape) {
+      contributorLayout.shape = validateAvatarShape(avatarShape);
+    }
     const commitMessage = getInput("commit-message") || "chore: update star history";
     if (!commitMessage.trim() || /[\u0000-\u001f\u007f]/.test(commitMessage)) {
       throw new Error("commit-message must be a non-empty single line");
@@ -20215,6 +20540,12 @@ async function main() {
         contributors,
         contributorsLimit,
         chartStyle,
+        chartVariant,
+        chartTitle,
+        contributorsTitle,
+        smooth,
+        overrides,
+        contributorLayout,
         animate: getBooleanInput("animate"),
         commitMessage,
         today: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)

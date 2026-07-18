@@ -1,73 +1,73 @@
-# Star History Action Design System
+# Repository Visuals Design System
 
 ## 1. Atmosphere & Identity
 
-A precise developer-facing data graphic that stays readable inside a GitHub README. The signature is a restrained luminous trend line: the chart feels alive when first revealed, then becomes quiet so the data remains primary. The direction adapts Supabase's code-native dark surfaces and translucent color layering without copying its brand.
+A precise developer-facing data graphic that stays readable inside a GitHub README. The signature is a restrained luminous trend line topped by a dashboard-style header that leads with the current star total: the chart feels alive when first revealed, then becomes quiet so the data remains primary. The direction adapts code-native dark surfaces and translucent color layering without copying any single brand.
 
 ## 2. Color
 
-### Palette
+### Themes
 
-| Style | Role | Light | Dark | Usage |
-| --- | --- | --- | --- | --- |
-| All | Surface | `#ffffff` | `#0d1117` | Classic and minimal canvas |
-| All | Text | `#24292f` | `#e6edf3` | Title and primary labels |
-| All | Muted text | `#57606a` | `#8b949e` | Repository, axes, timestamp |
-| All | Grid | `#d8dee4` | `#30363d` | Low-contrast horizontal guides |
-| Classic | Accent | `#d84a3a` | `#e05d44` | Warm star-history line and marker |
-| Minimal | Accent | `#2563eb` | `#60a5fa` | Crisp line and marker |
-| Gradient | Surface | `#f8fafc` | `#0f172a` | Cool elevated canvas |
-| Gradient | Text | `#172033` | `#f8fafc` | Primary labels |
-| Gradient | Muted text | `#526072` | `#94a3b8` | Secondary labels |
-| Gradient | Grid | `#dbe4ee` | `#27364a` | Guides |
-| Gradient | Start | `#059669` | `#3ecf8e` | Trend gradient origin |
-| Gradient | End | `#0284c7` | `#38bdf8` | Trend gradient destination |
+Nine themes each ship a tuned light and dark palette built from the same six roles — `background`, `foreground`, `muted`, `grid`, and a `start`/`end` accent pair that forms the trend gradient. Warm-to-cool families cover most README aesthetics:
 
-Color never carries data meaning by itself: all themes render the same line, endpoint marker, count label, axes, and textual summary. Area fills remain subordinate to the trend line.
+| Theme | Default variant | Accent (light → dark direction) |
+| --- | --- | --- |
+| `classic` | area | Warm GitHub red |
+| `minimal` | line | Crisp blue |
+| `gradient` | glow | Emerald → sky |
+| `midnight` | glow | Indigo → violet |
+| `sunset` | glow | Amber → rose |
+| `ocean` | area | Cyan → sky |
+| `forest` | area | Lime → green |
+| `flame` | glow | Orange → red |
+| `mono` | line | Monochrome ink |
+
+The `background-color`, `background-color-dark`, `accent-color`, and `accent-color-dark` inputs override individual roles on top of any theme; an accent override collapses the gradient to a single validated hex color. Color never carries data meaning by itself: every theme renders the same line, endpoint marker, header total, axes, and textual summary. Area fills remain subordinate to the trend line.
 
 ## 3. Typography
 
 | Role | Size | Weight | Usage |
 | --- | --- | --- | --- |
-| Title | 24px | 600 | Chart name |
-| Current value | 16px | 600 | Latest star count |
-| Metadata | 14px | 400 | Repository and date ticks |
-| Caption | 12px | 500 | Updated date |
+| Current total | 30px | 700 | Latest star count in the header |
+| Title | 22px | 700 | Chart name |
+| Metadata | 13px | 400 | Repository and axis labels |
+| Eyebrow | 12px | 500 | `STARS` label and footer captions |
 
 The SVG uses a self-contained system sans-serif stack. It never downloads fonts or external assets, preserving deterministic rendering and privacy.
 
 ## 4. Spacing & Layout
 
-The base unit is 4px. Star charts use a fixed `960 × 540` viewBox. Contributor walls use a `960px`-wide dynamic viewBox with 32px outer padding, a 48px avatar, an 8px gap, and 16 columns. Both scale responsively without layout-dependent JavaScript. Text and graphics keep at least 8px visual separation.
+The base unit is 4px. Star charts use a fixed `960 × 540` viewBox with a 104px header band. Contributor walls use a dynamic viewBox whose width follows the configured column count, avatar size, gap, and outer padding (defaults: 16 columns, 48px avatars, 8px gap, 32px padding). Both scale responsively without layout-dependent JavaScript, and every card carries a 1px hairline border so it reads as a distinct surface against any README background.
 
 ## 5. Components
 
 ### Star History Chart
 
-- **Structure**: accessible SVG title and description, surface, header, axes, trend group, endpoint value, updated caption.
-- **Variants**: `classic` area chart, `minimal` line chart, `gradient` luminous area chart; each has light and dark output.
+- **Structure**: accessible SVG title and description, bordered surface, header (icon, title, repository, and right-aligned current total), dashed axes, trend group, haloed endpoint marker, and a footer that pairs the tracked date range with the refresh date.
+- **Variants**: `area` (filled), `line` (stroke only), and `glow` (area plus a soft static bloom). Each theme selects a default variant, and `chart-variant` overrides it independently of the palette.
+- **Line shape**: `smooth` (default) draws a Fritsch–Carlson monotone cubic spline that never overshoots the data, so a cumulative star line stays monotonic; disabling it falls back to straight segments.
 - **States**: one-point history, multi-point history, static motion-disabled, animated reveal. Invalid or empty history fails before rendering.
-- **Accessibility**: `role="img"`, linked `<title>` and `<desc>`, readable text contrast, visible endpoint shape and label, reduced-motion support.
-- **Motion**: one entry reveal on the trend group and one endpoint emphasis. No looping animation.
+- **Accessibility**: `role="img"`, linked `<title>` and `<desc>`, readable text contrast, a visible endpoint marker, and reduced-motion support. The current total is real text, not a decorative label.
+- **Motion**: one entry reveal on the trend group, one endpoint emphasis, and a slow endpoint halo pulse that is suppressed under reduced-motion. No looping geometry animation.
 
 ### Contributor Wall
 
-- **Structure**: accessible SVG title and description, surface, users icon, repository label, contributor count, and a dense avatar grid.
-- **Variants**: the same `classic`, `minimal`, and `gradient` palettes as the chart, each with light and dark output.
+- **Structure**: accessible SVG title and description, bordered surface, users icon, repository label, right-aligned contributor count with a "led by" line, and a dense avatar grid.
+- **Layout**: column count, avatar size, gap, outer padding, and avatar shape (`circle`, `squircle`, `square`) are all configurable; the viewBox is computed from them.
+- **Leaderboard**: contributors are ordered by contribution count, the top three carry a gradient accent ring, and each avatar exposes its rank and count through a per-avatar `<title>`.
+- **Theme**: the same nine themes and color overrides as the chart, each with light and dark output.
 - **States**: populated wall, empty repository, missing avatar fallback, static motion-disabled, animated reveal.
-- **Accessibility**: root `role="img"`, linked `<title>` and `<desc>`, descriptive contributor count, per-avatar titles, and a text initial when an avatar cannot load.
-- **Privacy and reliability**: GitHub avatars are resized before generation and embedded as validated raster data URLs; rendered SVG files make no external requests.
+- **Privacy and reliability**: GitHub avatars are resized before generation and embedded as validated raster data URLs; rendered SVG files make no external requests. Only `data:` image URLs matching a raster allowlist are emitted.
 - **Motion**: the complete wall enters once as a group. Individual avatars never loop or stagger.
 
 ## 6. Motion & Interaction
 
-- Entry duration: 480ms with `cubic-bezier(0.16, 1, 0.3, 1)`.
-- Endpoint emphasis: 300ms alongside the line entrance.
+- Entry duration: 520ms with `cubic-bezier(0.16, 1, 0.3, 1)` on the trend group and contributor wall.
+- Endpoint emphasis: a 320ms scale-in after a short delay, plus an optional 2.6s halo pulse.
 - Only `transform` and `opacity` animate; SVG geometry never triggers layout work.
-- `prefers-reduced-motion: reduce` disables all motion while keeping the complete chart visible.
+- `prefers-reduced-motion: reduce` disables all motion and hides the halo pulse while keeping the complete chart visible.
 - Motion is optional through the Action's `animate` input.
-- Contributor walls reuse the 480ms entry timing without per-avatar animation.
 
 ## 7. Depth & Surface
 
-Depth uses tonal shifts and translucent fills rather than heavy shadows. Classic is warm and familiar, minimal removes the area fill and decorative depth, and gradient adds one soft static glow behind the trend line. Grid lines stay quiet in every variant so decoration never obscures the trend.
+Depth uses tonal shifts, a hairline card border, and translucent fills rather than heavy shadows. `area` themes are warm and familiar, `line` themes remove the fill and decorative depth, and `glow` themes add one soft static bloom behind the trend line and a faint surface glow in the top corner. Grid lines stay dashed and quiet in every variant so decoration never obscures the trend.

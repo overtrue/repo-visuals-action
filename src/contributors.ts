@@ -1,7 +1,10 @@
-import { paletteFor, type ChartStyle } from "./theme.ts";
+import { resolvePalette, type ChartStyle, type PaletteOverrides } from "./theme.ts";
 
 export const DEFAULT_CONTRIBUTORS_LIMIT = 150;
 export const MAX_CONTRIBUTORS_LIMIT = 200;
+
+export const AVATAR_SHAPES = ["circle", "squircle", "square"] as const;
+export type AvatarShape = (typeof AVATAR_SHAPES)[number];
 
 export interface Contributor {
   login: string;
@@ -9,13 +12,33 @@ export interface Contributor {
   avatarDataUrl: string | null;
 }
 
+export interface ContributorLayout {
+  avatarSize: number;
+  gap: number;
+  columns: number;
+  padding: number;
+  shape: AvatarShape;
+}
+
+export const DEFAULT_CONTRIBUTOR_LAYOUT: ContributorLayout = {
+  avatarSize: 48,
+  gap: 8,
+  columns: 16,
+  padding: 32,
+  shape: "circle",
+};
+
 export interface ContributorSvgOptions {
   dark?: boolean;
   style?: ChartStyle;
   animate?: boolean;
+  title?: string;
+  overrides?: PaletteOverrides;
+  layout?: Partial<ContributorLayout>;
 }
 
 const AVATAR_DATA_URL = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+const FONT = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 export function validateContributorsLimit(value: string): number {
   if (!/^\d+$/.test(value)) {
@@ -28,6 +51,40 @@ export function validateContributorsLimit(value: string): number {
   return limit;
 }
 
+function validateInteger(value: string, label: string, min: number, max: number): number {
+  if (!/^\d+$/.test(value.trim())) {
+    throw new Error(`${label} must be an integer`);
+  }
+  const parsed = Number(value);
+  if (parsed < min || parsed > max) {
+    throw new Error(`${label} must be between ${min} and ${max}`);
+  }
+  return parsed;
+}
+
+export function validateAvatarSize(value: string): number {
+  return validateInteger(value, "avatar-size", 24, 128);
+}
+
+export function validateAvatarGap(value: string): number {
+  return validateInteger(value, "avatar-gap", 0, 48);
+}
+
+export function validateContributorsColumns(value: string): number {
+  return validateInteger(value, "contributors-columns", 4, 32);
+}
+
+export function validatePadding(value: string): number {
+  return validateInteger(value, "padding", 8, 96);
+}
+
+export function validateAvatarShape(value: string): AvatarShape {
+  if ((AVATAR_SHAPES as readonly string[]).includes(value)) {
+    return value as AvatarShape;
+  }
+  throw new Error(`avatar-shape must be one of: ${AVATAR_SHAPES.join(", ")}`);
+}
+
 function escapeXml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -35,6 +92,16 @@ function escapeXml(value: string): string {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&apos;");
+}
+
+function cornerRadius(shape: AvatarShape, size: number): number {
+  if (shape === "circle") {
+    return size / 2;
+  }
+  if (shape === "squircle") {
+    return Math.round(size * 0.3);
+  }
+  return Math.round(size * 0.16);
 }
 
 export function renderContributorsSvg(
@@ -45,94 +112,108 @@ export function renderContributorsSvg(
   const dark = options.dark ?? false;
   const style = options.style ?? "classic";
   const animate = options.animate ?? true;
-  const palette = paletteFor(style, dark);
-  const width = 960;
-  const left = 32;
-  const right = 32;
-  const top = 80;
-  const bottom = 32;
-  const avatarSize = 48;
-  const gap = 8;
-  const columns = 16;
+  const palette = resolvePalette(style, dark, options.overrides);
+  const title = (options.title ?? "Contributors").trim() || "Contributors";
+  const layout = { ...DEFAULT_CONTRIBUTOR_LAYOUT, ...options.layout };
+  const { avatarSize, gap, columns, padding, shape } = layout;
+  const radius = cornerRadius(shape, avatarSize);
+
+  const headerHeight = 64;
+  const gridTop = padding + headerHeight;
   const rows = Math.max(1, Math.ceil(contributors.length / columns));
-  const gridHeight = contributors.length === 0 ? 80 : rows * avatarSize + (rows - 1) * gap;
-  const height = top + gridHeight + bottom;
-  const font = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  const gridHeight = contributors.length === 0 ? 72 : rows * avatarSize + (rows - 1) * gap;
+  // Keep the card wide enough for the header even with narrow avatar grids.
+  const width = Math.max(420, padding * 2 + columns * avatarSize + (columns - 1) * gap);
+  const height = gridTop + gridHeight + padding;
+  const cardRadius = 16;
+
   const countLabel = `${contributors.length} ${contributors.length === 1 ? "contributor" : "contributors"}`;
   const topContributors = contributors.slice(0, 10).map(({ login }) => login).join(", ");
   const description = contributors.length === 0
     ? `No contributors found for ${repository}.`
     : `${countLabel} for ${repository}. Top contributors: ${topContributors}.`;
   const wallClass = animate ? ' class="wall-enter"' : "";
+
   const elements = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-animated="${animate}">`,
-    `<title id="title">${escapeXml(repository)} contributors</title>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-shape="${shape}" data-animated="${animate}">`,
+    `<title id="title">${escapeXml(repository)} ${escapeXml(title)}</title>`,
     `<desc id="description">${escapeXml(description)}</desc>`,
     "<defs>",
     `<linearGradient id="wall-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${palette.start}"/><stop offset="100%" stop-color="${palette.end}"/></linearGradient>`,
-    `<clipPath id="avatar-clip"><circle cx="24" cy="24" r="24"/></clipPath>`,
+    `<clipPath id="avatar-clip"><rect width="${avatarSize}" height="${avatarSize}" rx="${radius}"/></clipPath>`,
+    `<radialGradient id="wall-surface-glow" cx="80%" cy="0%" r="90%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.10"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
+    "</defs>",
   ];
-  if (style === "gradient") {
-    elements.push(
-      `<radialGradient id="wall-surface-glow" cx="76%" cy="12%" r="72%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.12"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
-    );
-  }
-  elements.push("</defs>");
   if (animate) {
     elements.push(
       "<style>",
-      ".wall-enter{transform-box:fill-box;transform-origin:center;animation:wall-enter 480ms cubic-bezier(0.16,1,0.3,1)}",
-      "@keyframes wall-enter{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}",
+      ".wall-enter{transform-box:fill-box;transform-origin:center;animation:wall-enter 520ms cubic-bezier(0.16,1,0.3,1)}",
+      "@keyframes wall-enter{from{opacity:.35;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}",
       "@media (prefers-reduced-motion:reduce){.wall-enter{animation:none!important}}",
       "</style>",
     );
   }
   elements.push(
-    `<rect width="${width}" height="${height}" fill="${palette.background}" rx="${style === "gradient" ? 16 : 12}"/>`,
+    `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" fill="${palette.background}" stroke="${palette.grid}" stroke-width="1" rx="${cardRadius}"/>`,
+    `<rect width="${width}" height="${Math.round(height / 2)}" fill="url(#wall-surface-glow)" rx="${cardRadius}"/>`,
   );
-  if (style === "gradient") {
-    elements.push(`<rect width="${width}" height="${height}" fill="url(#wall-surface-glow)" rx="16"/>`);
-  }
+
+  // Header.
+  const leadLabel = contributors.length > 0 && contributors[0] ? `Led by ${escapeXml(contributors[0].login)}` : "";
   elements.push(
-    `<g transform="translate(${left} 18)" fill="none" stroke="url(#wall-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>`,
-    `<text x="${left + 36}" y="40" fill="${palette.foreground}" font-family="${font}" font-size="24" font-weight="600">Contributors</text>`,
-    `<text x="${left + 36}" y="62" fill="${palette.muted}" font-family="${font}" font-size="14">${escapeXml(repository)}</text>`,
-    `<text x="${width - right}" y="40" fill="${palette.muted}" font-family="${font}" font-size="14" font-weight="500" text-anchor="end">${countLabel}</text>`,
-    `<g${wallClass}>`,
+    `<g transform="translate(${padding} ${padding - 2})" fill="none" stroke="url(#wall-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>`,
+    `<text x="${padding + 36}" y="${padding + 12}" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700">${escapeXml(title)}</text>`,
+    `<text x="${padding + 36}" y="${padding + 34}" fill="${palette.muted}" font-family="${FONT}" font-size="13">${escapeXml(repository)}</text>`,
+    `<text x="${width - padding}" y="${padding + 8}" fill="${palette.foreground}" font-family="${FONT}" font-size="18" font-weight="700" text-anchor="end">${countLabel}</text>`,
   );
+  if (leadLabel) {
+    elements.push(
+      `<text x="${width - padding}" y="${padding + 30}" fill="${palette.muted}" font-family="${FONT}" font-size="13" text-anchor="end">${leadLabel}</text>`,
+    );
+  }
+  elements.push(`<g${wallClass}>`);
 
   if (contributors.length === 0) {
     elements.push(
-      `<text x="${width / 2}" y="${top + 36}" fill="${palette.muted}" font-family="${font}" font-size="16" text-anchor="middle">No contributors yet</text>`,
+      `<text x="${width / 2}" y="${gridTop + 36}" fill="${palette.muted}" font-family="${FONT}" font-size="16" text-anchor="middle">No contributors yet</text>`,
     );
   } else {
+    const center = avatarSize / 2;
+    const fontSize = Math.max(11, Math.round(avatarSize * 0.34));
     for (const [index, contributor] of contributors.entries()) {
       const column = index % columns;
       const row = Math.floor(index / columns);
-      const x = left + column * (avatarSize + gap);
-      const y = top + row * (avatarSize + gap);
+      const x = padding + column * (avatarSize + gap);
+      const y = gridTop + row * (avatarSize + gap);
       const login = escapeXml(contributor.login);
       const initial = escapeXml(contributor.login.slice(0, 1).toUpperCase() || "?");
       const contributionLabel = `${contributor.contributions} ${contributor.contributions === 1 ? "contribution" : "contributions"}`;
+      const topThree = index < 3;
       elements.push(
-        `<g transform="translate(${x} ${y})">`,
-        `<title>${login}, ${contributionLabel}</title>`,
-        `<circle cx="24" cy="24" r="24" fill="url(#wall-accent)" opacity="0.20"/>`,
+        `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">`,
+        `<title>#${index + 1} ${login}, ${contributionLabel}</title>`,
+        `<rect width="${avatarSize}" height="${avatarSize}" rx="${radius}" fill="url(#wall-accent)" opacity="0.18"/>`,
       );
       if (contributor.avatarDataUrl && AVATAR_DATA_URL.test(contributor.avatarDataUrl)) {
         elements.push(
-          `<image width="48" height="48" href="${contributor.avatarDataUrl}" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar-clip)"/>`,
+          `<image width="${avatarSize}" height="${avatarSize}" href="${contributor.avatarDataUrl}" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar-clip)"/>`,
         );
       } else {
         elements.push(
-          `<text x="24" y="30" fill="${palette.foreground}" font-family="${font}" font-size="16" font-weight="600" text-anchor="middle">${initial}</text>`,
+          `<text x="${center}" y="${center + fontSize / 3}" fill="${palette.foreground}" font-family="${FONT}" font-size="${fontSize}" font-weight="600" text-anchor="middle">${initial}</text>`,
         );
       }
-      elements.push(
-        `<circle cx="24" cy="24" r="23.5" fill="none" stroke="${palette.grid}"/>`,
-        "</g>",
-      );
+      if (topThree) {
+        elements.push(
+          `<rect x="0.75" y="0.75" width="${avatarSize - 1.5}" height="${avatarSize - 1.5}" rx="${Math.max(0, radius - 0.75)}" fill="none" stroke="url(#wall-accent)" stroke-width="2.5"/>`,
+        );
+      } else {
+        elements.push(
+          `<rect x="0.5" y="0.5" width="${avatarSize - 1}" height="${avatarSize - 1}" rx="${Math.max(0, radius - 0.5)}" fill="none" stroke="${palette.grid}"/>`,
+        );
+      }
+      elements.push("</g>");
     }
   }
   elements.push("</g>", "</svg>");

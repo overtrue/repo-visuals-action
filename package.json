@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test --experimental-strip-types test/*.test.ts",
     "package": "esbuild src/index.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.cjs",
+    "examples": "node --experimental-strip-types scripts/generate-examples.ts",
     "check": "npm run typecheck && npm test && npm run package && git diff --exit-code -- dist"
   },
   "dependencies": {
