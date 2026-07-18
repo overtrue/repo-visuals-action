@@ -7,8 +7,9 @@ import {
 } from "./history.ts";
 import type { Artifact, StarHistoryClient } from "./github.ts";
 import { outputFile, rawUrl } from "./paths.ts";
-import { renderContributorsSvg } from "./contributors.ts";
-import { renderSvg, type ChartStyle } from "./svg.ts";
+import { renderContributorsSvg, type ContributorLayout } from "./contributors.ts";
+import { renderSvg } from "./svg.ts";
+import type { ChartStyle, ChartVariant, PaletteOverrides } from "./theme.ts";
 
 export interface ActionInputs {
   repository: string;
@@ -19,6 +20,12 @@ export interface ActionInputs {
   contributors: boolean;
   contributorsLimit: number;
   chartStyle: ChartStyle;
+  chartVariant?: ChartVariant;
+  chartTitle?: string;
+  contributorsTitle?: string;
+  smooth: boolean;
+  overrides: PaletteOverrides;
+  contributorLayout: Partial<ContributorLayout>;
   animate: boolean;
   commitMessage: string;
   today: string;
@@ -73,37 +80,35 @@ export async function runAction(
   const contributors = inputs.contributors
     ? await client.fetchContributors(inputs.contributorsLimit)
     : null;
+  const chartOptions = {
+    style: inputs.chartStyle,
+    variant: inputs.chartVariant,
+    animate: inputs.animate,
+    smooth: inputs.smooth,
+    title: inputs.chartTitle,
+    overrides: inputs.overrides,
+  };
+  const wallOptions = {
+    style: inputs.chartStyle,
+    animate: inputs.animate,
+    title: inputs.contributorsTitle,
+    overrides: inputs.overrides,
+    layout: inputs.contributorLayout,
+  };
   const artifacts: Artifact[] = [
     { path: historyPath, content: `${JSON.stringify(history, null, 2)}\n` },
-    {
-      path: lightPath,
-      content: renderSvg(history, { style: inputs.chartStyle, animate: inputs.animate }),
-    },
-    {
-      path: darkPath,
-      content: renderSvg(history, {
-        dark: true,
-        style: inputs.chartStyle,
-        animate: inputs.animate,
-      }),
-    },
+    { path: lightPath, content: renderSvg(history, chartOptions) },
+    { path: darkPath, content: renderSvg(history, { ...chartOptions, dark: true }) },
   ];
   if (contributors) {
     artifacts.push(
       {
         path: contributorsLightPath,
-        content: renderContributorsSvg(contributors, inputs.repository, {
-          style: inputs.chartStyle,
-          animate: inputs.animate,
-        }),
+        content: renderContributorsSvg(contributors, inputs.repository, wallOptions),
       },
       {
         path: contributorsDarkPath,
-        content: renderContributorsSvg(contributors, inputs.repository, {
-          dark: true,
-          style: inputs.chartStyle,
-          animate: inputs.animate,
-        }),
+        content: renderContributorsSvg(contributors, inputs.repository, { ...wallOptions, dark: true }),
       },
     );
   }

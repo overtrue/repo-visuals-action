@@ -22,9 +22,37 @@ inputs:
     required: false
     default: .
   chart-style:
-    description: SVG chart style (classic, minimal, or gradient)
+    description: Color theme (classic, minimal, gradient, midnight, sunset, ocean, forest, flame, mono)
     required: false
     default: classic
+  chart-variant:
+    description: Chart shape override (area, line, or glow); defaults to the theme's own variant
+    required: false
+    default: ""
+  chart-title:
+    description: Custom heading for the star chart (defaults to "Star History")
+    required: false
+    default: ""
+  smooth:
+    description: Draw a smooth monotone curve instead of straight segments
+    required: false
+    default: "true"
+  background-color:
+    description: Override the light-mode surface color (hex, e.g. #ffffff)
+    required: false
+    default: ""
+  background-color-dark:
+    description: Override the dark-mode surface color (hex, e.g. #0d1117)
+    required: false
+    default: ""
+  accent-color:
+    description: Override the light-mode line/accent color (hex)
+    required: false
+    default: ""
+  accent-color-dark:
+    description: Override the dark-mode line/accent color (hex)
+    required: false
+    default: ""
   animate:
     description: Add a reduced-motion-aware SVG entrance animation
     required: false
@@ -37,6 +65,30 @@ inputs:
     description: Maximum number of non-bot contributors to include (1-200)
     required: false
     default: "150"
+  contributors-title:
+    description: Custom heading for the contributor wall (defaults to "Contributors")
+    required: false
+    default: ""
+  contributors-columns:
+    description: Number of avatars per row in the contributor wall (4-32)
+    required: false
+    default: "16"
+  avatar-size:
+    description: Avatar edge length in pixels for the contributor wall (24-128)
+    required: false
+    default: "48"
+  avatar-gap:
+    description: Spacing in pixels between contributor avatars (0-48)
+    required: false
+    default: "8"
+  avatar-shape:
+    description: Avatar shape in the contributor wall (circle, squircle, or square)
+    required: false
+    default: circle
+  padding:
+    description: Outer padding in pixels around the contributor wall (8-96)
+    required: false
+    default: "32"
   bootstrap:
     description: Fetch historical timestamps with stargazers-token when no history exists
     required: false
