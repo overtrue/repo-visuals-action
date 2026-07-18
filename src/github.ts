@@ -1,4 +1,12 @@
+import type { Contributor } from "./contributors.ts";
+
 type Sleep = (milliseconds: number) => Promise<void>;
+
+const AVATAR_SIZE = 64;
+const MAX_AVATAR_BYTES = 64 * 1024;
+const AVATAR_CONCURRENCY = 8;
+const AVATAR_RESPONSE_MIME_TYPES = new Set(["image/gif", "image/jpeg", "image/png", "image/webp"]);
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
 interface RefResponse {
   object: { sha: string };
@@ -33,6 +41,13 @@ interface StargazerResponse {
   starred_at?: unknown;
 }
 
+interface ContributorResponse {
+  login?: unknown;
+  avatar_url?: unknown;
+  contributions?: unknown;
+  type?: unknown;
+}
+
 export interface LoadedHistory {
   history: unknown | null;
   parentSha: string | null;
@@ -52,6 +67,7 @@ export interface StarHistoryClient {
   loadHistory(branch: string, path: string): Promise<LoadedHistory>;
   fetchStargazerTimestamps(): Promise<string[]>;
   fetchRepositoryCount(): Promise<number>;
+  fetchContributors(limit: number): Promise<Contributor[]>;
   publishArtifacts(
     branch: string,
     expectedParentSha: string | null,
@@ -107,6 +123,23 @@ function errorMessage(status: number, body: string): string {
     // The status remains actionable when GitHub returns a non-JSON error page.
   }
   return `GitHub API request failed with HTTP ${status}`;
+}
+
+function avatarMimeType(bytes: Buffer): "image/jpeg" | "image/png" | "image/webp" | null {
+  if (bytes.length >= PNG_SIGNATURE.length && bytes.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
+    return "image/png";
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
+    bytes.subarray(8, 12).toString("ascii") === "WEBP"
+  ) {
+    return "image/webp";
+  }
+  return null;
 }
 
 export class GitHubClient implements StarHistoryClient {
@@ -248,6 +281,151 @@ export class GitHubClient implements StarHistoryClient {
       throw new Error("GitHub returned an invalid stargazers_count");
     }
     return response.stargazers_count;
+  }
+
+  private async fetchAvatar(avatarUrl: string): Promise<string | null> {
+    let url: URL;
+    try {
+      url = new URL(avatarUrl);
+    } catch {
+      return null;
+    }
+    if (url.protocol !== "https:") {
+      return null;
+    }
+    const apiHost = new URL(this.apiUrl).hostname;
+    const trustedHost = apiHost === "api.github.com"
+      ? /^(?:avatars\d*\.)?githubusercontent\.com$/.test(url.hostname)
+      : url.hostname === apiHost;
+    if (!trustedHost || url.username || url.password) {
+      return null;
+    }
+    url.searchParams.set("s", String(AVATAR_SIZE));
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const response = await this.fetchImplementation(url, {
+          headers: {
+            accept: "image/png,image/jpeg,image/webp",
+            "user-agent": "overtrue-star-history-action",
+          },
+          redirect: "error",
+          signal: AbortSignal.timeout(30_000),
+        });
+        if (!response.ok) {
+          const delay = retryDelay(response, attempt, this.now);
+          if (delay !== null && attempt < 2) {
+            await this.sleep(delay);
+            continue;
+          }
+          return null;
+        }
+        const responseMimeType = response.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
+        if (!responseMimeType || !AVATAR_RESPONSE_MIME_TYPES.has(responseMimeType)) {
+          return null;
+        }
+        const declaredLength = Number(response.headers.get("content-length"));
+        if (Number.isFinite(declaredLength) && declaredLength > MAX_AVATAR_BYTES) {
+          return null;
+        }
+        if (!response.body) {
+          return null;
+        }
+        const reader = response.body.getReader();
+        const chunks: Buffer[] = [];
+        let byteLength = 0;
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          byteLength += value.byteLength;
+          if (byteLength > MAX_AVATAR_BYTES) {
+            await reader.cancel();
+            return null;
+          }
+          chunks.push(Buffer.from(value));
+        }
+        if (byteLength === 0) {
+          return null;
+        }
+        const bytes = Buffer.concat(chunks, byteLength);
+        const mimeType = avatarMimeType(bytes);
+        if (!mimeType) {
+          return null;
+        }
+        return `data:${mimeType};base64,${bytes.toString("base64")}`;
+      } catch {
+        if (attempt === 2) {
+          return null;
+        }
+        await this.sleep(2 ** attempt * 1_000);
+      }
+    }
+    return null;
+  }
+
+  async fetchContributors(limit: number): Promise<Contributor[]> {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 500) {
+      throw new Error("contributors limit must be between 1 and 500");
+    }
+
+    const contributors: Array<Contributor & { avatarUrl: string }> = [];
+    for (let page = 1; page <= 5 && contributors.length < limit; page += 1) {
+      const response = await this.request<ContributorResponse[] | undefined>(
+        "GET",
+        `${this.repositoryPath}/contributors?per_page=100&page=${page}`,
+      );
+      if (response === undefined) {
+        break;
+      }
+      if (!Array.isArray(response)) {
+        throw new Error("GitHub returned an invalid contributors response");
+      }
+      for (const contributor of response) {
+        if (
+          typeof contributor.login !== "string" ||
+          contributor.login.length === 0 ||
+          typeof contributor.avatar_url !== "string" ||
+          !Number.isSafeInteger(contributor.contributions) ||
+          (contributor.contributions as number) < 0 ||
+          typeof contributor.type !== "string"
+        ) {
+          throw new Error("GitHub returned an invalid contributor");
+        }
+        if (contributor.type === "Bot" || contributor.login.endsWith("[bot]")) {
+          continue;
+        }
+        contributors.push({
+          login: contributor.login,
+          contributions: contributor.contributions as number,
+          avatarDataUrl: null,
+          avatarUrl: contributor.avatar_url,
+        });
+        if (contributors.length === limit) {
+          break;
+        }
+      }
+      if (response.length < 100) {
+        break;
+      }
+    }
+
+    let next = 0;
+    const worker = async (): Promise<void> => {
+      while (next < contributors.length) {
+        const index = next;
+        next += 1;
+        const contributor = contributors[index];
+        if (contributor) {
+          contributor.avatarDataUrl = await this.fetchAvatar(contributor.avatarUrl);
+        }
+      }
+    };
+    await Promise.all(
+      Array.from({ length: Math.min(AVATAR_CONCURRENCY, contributors.length) }, () => worker()),
+    );
+    return contributors.map(({ avatarUrl: _avatarUrl, ...contributor }) => contributor);
   }
 
   async publishArtifacts(

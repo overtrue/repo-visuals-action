@@ -38,7 +38,7 @@ The SVG uses a self-contained system sans-serif stack. It never downloads fonts 
 
 ## 4. Spacing & Layout
 
-The base unit is 4px. The fixed `960 × 540` viewBox scales responsively without layout-dependent JavaScript. Plot margins are 80px left, 32px right, 72px top, and 64px bottom. Text and markers keep at least 8px visual separation.
+The base unit is 4px. Star charts use a fixed `960 × 540` viewBox. Contributor walls use a `960px`-wide dynamic viewBox with 32px outer padding, a 48px avatar, an 8px gap, and 16 columns. Both scale responsively without layout-dependent JavaScript. Text and graphics keep at least 8px visual separation.
 
 ## 5. Components
 
@@ -50,6 +50,15 @@ The base unit is 4px. The fixed `960 × 540` viewBox scales responsively without
 - **Accessibility**: `role="img"`, linked `<title>` and `<desc>`, readable text contrast, visible endpoint shape and label, reduced-motion support.
 - **Motion**: one entry reveal on the trend group and one endpoint emphasis. No looping animation.
 
+### Contributor Wall
+
+- **Structure**: accessible SVG title and description, surface, users icon, repository label, contributor count, and a dense avatar grid.
+- **Variants**: the same `classic`, `minimal`, and `gradient` palettes as the chart, each with light and dark output.
+- **States**: populated wall, empty repository, missing avatar fallback, static motion-disabled, animated reveal.
+- **Accessibility**: root `role="img"`, linked `<title>` and `<desc>`, descriptive contributor count, per-avatar titles, and a text initial when an avatar cannot load.
+- **Privacy and reliability**: GitHub avatars are resized before generation and embedded as validated raster data URLs; rendered SVG files make no external requests.
+- **Motion**: the complete wall enters once as a group. Individual avatars never loop or stagger.
+
 ## 6. Motion & Interaction
 
 - Entry duration: 480ms with `cubic-bezier(0.16, 1, 0.3, 1)`.
@@ -57,6 +66,7 @@ The base unit is 4px. The fixed `960 × 540` viewBox scales responsively without
 - Only `transform` and `opacity` animate; SVG geometry never triggers layout work.
 - `prefers-reduced-motion: reduce` disables all motion while keeping the complete chart visible.
 - Motion is optional through the Action's `animate` input.
+- Contributor walls reuse the 480ms entry timing without per-avatar animation.
 
 ## 7. Depth & Surface
 

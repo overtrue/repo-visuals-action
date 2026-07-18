@@ -19251,7 +19251,193 @@ function info(message) {
   process.stdout.write(message + os4.EOL);
 }
 
+// src/theme.ts
+var CHART_STYLES = ["classic", "minimal", "gradient"];
+var PALETTES = {
+  classic: {
+    light: {
+      background: "#ffffff",
+      foreground: "#24292f",
+      muted: "#57606a",
+      grid: "#d8dee4",
+      start: "#d84a3a",
+      end: "#d84a3a"
+    },
+    dark: {
+      background: "#0d1117",
+      foreground: "#e6edf3",
+      muted: "#8b949e",
+      grid: "#30363d",
+      start: "#e05d44",
+      end: "#e05d44"
+    }
+  },
+  minimal: {
+    light: {
+      background: "#ffffff",
+      foreground: "#24292f",
+      muted: "#57606a",
+      grid: "#d8dee4",
+      start: "#2563eb",
+      end: "#2563eb"
+    },
+    dark: {
+      background: "#0d1117",
+      foreground: "#e6edf3",
+      muted: "#8b949e",
+      grid: "#30363d",
+      start: "#60a5fa",
+      end: "#60a5fa"
+    }
+  },
+  gradient: {
+    light: {
+      background: "#f8fafc",
+      foreground: "#172033",
+      muted: "#526072",
+      grid: "#dbe4ee",
+      start: "#059669",
+      end: "#0284c7"
+    },
+    dark: {
+      background: "#0f172a",
+      foreground: "#f8fafc",
+      muted: "#94a3b8",
+      grid: "#27364a",
+      start: "#3ecf8e",
+      end: "#38bdf8"
+    }
+  }
+};
+function paletteFor(style, dark) {
+  return PALETTES[style][dark ? "dark" : "light"];
+}
+function validateChartStyle(value) {
+  if (CHART_STYLES.includes(value)) {
+    return value;
+  }
+  throw new Error(`chart-style must be one of: ${CHART_STYLES.join(", ")}`);
+}
+
+// src/contributors.ts
+var DEFAULT_CONTRIBUTORS_LIMIT = 150;
+var MAX_CONTRIBUTORS_LIMIT = 200;
+var AVATAR_DATA_URL = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+function validateContributorsLimit(value) {
+  if (!/^\d+$/.test(value)) {
+    throw new Error("contributors-limit must be an integer");
+  }
+  const limit = Number(value);
+  if (limit < 1 || limit > MAX_CONTRIBUTORS_LIMIT) {
+    throw new Error(`contributors-limit must be between 1 and ${MAX_CONTRIBUTORS_LIMIT}`);
+  }
+  return limit;
+}
+function escapeXml(value) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+}
+function renderContributorsSvg(contributors, repository, options = {}) {
+  const dark = options.dark ?? false;
+  const style = options.style ?? "classic";
+  const animate = options.animate ?? true;
+  const palette = paletteFor(style, dark);
+  const width = 960;
+  const left = 32;
+  const right = 32;
+  const top = 80;
+  const bottom = 32;
+  const avatarSize = 48;
+  const gap = 8;
+  const columns = 16;
+  const rows = Math.max(1, Math.ceil(contributors.length / columns));
+  const gridHeight = contributors.length === 0 ? 80 : rows * avatarSize + (rows - 1) * gap;
+  const height = top + gridHeight + bottom;
+  const font = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  const countLabel = `${contributors.length} ${contributors.length === 1 ? "contributor" : "contributors"}`;
+  const topContributors = contributors.slice(0, 10).map(({ login }) => login).join(", ");
+  const description = contributors.length === 0 ? `No contributors found for ${repository}.` : `${countLabel} for ${repository}. Top contributors: ${topContributors}.`;
+  const wallClass = animate ? ' class="wall-enter"' : "";
+  const elements = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-animated="${animate}">`,
+    `<title id="title">${escapeXml(repository)} contributors</title>`,
+    `<desc id="description">${escapeXml(description)}</desc>`,
+    "<defs>",
+    `<linearGradient id="wall-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${palette.start}"/><stop offset="100%" stop-color="${palette.end}"/></linearGradient>`,
+    `<clipPath id="avatar-clip"><circle cx="24" cy="24" r="24"/></clipPath>`
+  ];
+  if (style === "gradient") {
+    elements.push(
+      `<radialGradient id="wall-surface-glow" cx="76%" cy="12%" r="72%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.12"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`
+    );
+  }
+  elements.push("</defs>");
+  if (animate) {
+    elements.push(
+      "<style>",
+      ".wall-enter{transform-box:fill-box;transform-origin:center;animation:wall-enter 480ms cubic-bezier(0.16,1,0.3,1)}",
+      "@keyframes wall-enter{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}",
+      "@media (prefers-reduced-motion:reduce){.wall-enter{animation:none!important}}",
+      "</style>"
+    );
+  }
+  elements.push(
+    `<rect width="${width}" height="${height}" fill="${palette.background}" rx="${style === "gradient" ? 16 : 12}"/>`
+  );
+  if (style === "gradient") {
+    elements.push(`<rect width="${width}" height="${height}" fill="url(#wall-surface-glow)" rx="16"/>`);
+  }
+  elements.push(
+    `<g transform="translate(${left} 18)" fill="none" stroke="url(#wall-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>`,
+    `<text x="${left + 36}" y="40" fill="${palette.foreground}" font-family="${font}" font-size="24" font-weight="600">Contributors</text>`,
+    `<text x="${left + 36}" y="62" fill="${palette.muted}" font-family="${font}" font-size="14">${escapeXml(repository)}</text>`,
+    `<text x="${width - right}" y="40" fill="${palette.muted}" font-family="${font}" font-size="14" font-weight="500" text-anchor="end">${countLabel}</text>`,
+    `<g${wallClass}>`
+  );
+  if (contributors.length === 0) {
+    elements.push(
+      `<text x="${width / 2}" y="${top + 36}" fill="${palette.muted}" font-family="${font}" font-size="16" text-anchor="middle">No contributors yet</text>`
+    );
+  } else {
+    for (const [index, contributor] of contributors.entries()) {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      const x = left + column * (avatarSize + gap);
+      const y = top + row * (avatarSize + gap);
+      const login = escapeXml(contributor.login);
+      const initial = escapeXml(contributor.login.slice(0, 1).toUpperCase() || "?");
+      const contributionLabel = `${contributor.contributions} ${contributor.contributions === 1 ? "contribution" : "contributions"}`;
+      elements.push(
+        `<g transform="translate(${x} ${y})">`,
+        `<title>${login}, ${contributionLabel}</title>`,
+        `<circle cx="24" cy="24" r="24" fill="url(#wall-accent)" opacity="0.20"/>`
+      );
+      if (contributor.avatarDataUrl && AVATAR_DATA_URL.test(contributor.avatarDataUrl)) {
+        elements.push(
+          `<image width="48" height="48" href="${contributor.avatarDataUrl}" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatar-clip)"/>`
+        );
+      } else {
+        elements.push(
+          `<text x="24" y="30" fill="${palette.foreground}" font-family="${font}" font-size="16" font-weight="600" text-anchor="middle">${initial}</text>`
+        );
+      }
+      elements.push(
+        `<circle cx="24" cy="24" r="23.5" fill="none" stroke="${palette.grid}"/>`,
+        "</g>"
+      );
+    }
+  }
+  elements.push("</g>", "</svg>");
+  return `${elements.join("\n")}
+`;
+}
+
 // src/github.ts
+var AVATAR_SIZE = 64;
+var MAX_AVATAR_BYTES = 64 * 1024;
+var AVATAR_CONCURRENCY = 8;
+var AVATAR_RESPONSE_MIME_TYPES = /* @__PURE__ */ new Set(["image/gif", "image/jpeg", "image/png", "image/webp"]);
+var PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 var ApiError = class extends Error {
   status;
   constructor(status, message) {
@@ -19291,6 +19477,18 @@ function errorMessage(status, body) {
   } catch {
   }
   return `GitHub API request failed with HTTP ${status}`;
+}
+function avatarMimeType(bytes) {
+  if (bytes.length >= PNG_SIGNATURE.length && bytes.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
+    return "image/png";
+  }
+  if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) {
+    return "image/jpeg";
+  }
+  if (bytes.length >= 12 && bytes.subarray(0, 4).toString("ascii") === "RIFF" && bytes.subarray(8, 12).toString("ascii") === "WEBP") {
+    return "image/webp";
+  }
+  return null;
 }
 var GitHubClient = class {
   token;
@@ -19410,6 +19608,137 @@ var GitHubClient = class {
       throw new Error("GitHub returned an invalid stargazers_count");
     }
     return response.stargazers_count;
+  }
+  async fetchAvatar(avatarUrl) {
+    let url;
+    try {
+      url = new URL(avatarUrl);
+    } catch {
+      return null;
+    }
+    if (url.protocol !== "https:") {
+      return null;
+    }
+    const apiHost = new URL(this.apiUrl).hostname;
+    const trustedHost = apiHost === "api.github.com" ? /^(?:avatars\d*\.)?githubusercontent\.com$/.test(url.hostname) : url.hostname === apiHost;
+    if (!trustedHost || url.username || url.password) {
+      return null;
+    }
+    url.searchParams.set("s", String(AVATAR_SIZE));
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const response = await this.fetchImplementation(url, {
+          headers: {
+            accept: "image/png,image/jpeg,image/webp",
+            "user-agent": "overtrue-star-history-action"
+          },
+          redirect: "error",
+          signal: AbortSignal.timeout(3e4)
+        });
+        if (!response.ok) {
+          const delay = retryDelay(response, attempt, this.now);
+          if (delay !== null && attempt < 2) {
+            await this.sleep(delay);
+            continue;
+          }
+          return null;
+        }
+        const responseMimeType = response.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
+        if (!responseMimeType || !AVATAR_RESPONSE_MIME_TYPES.has(responseMimeType)) {
+          return null;
+        }
+        const declaredLength = Number(response.headers.get("content-length"));
+        if (Number.isFinite(declaredLength) && declaredLength > MAX_AVATAR_BYTES) {
+          return null;
+        }
+        if (!response.body) {
+          return null;
+        }
+        const reader = response.body.getReader();
+        const chunks = [];
+        let byteLength = 0;
+        for (; ; ) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          byteLength += value.byteLength;
+          if (byteLength > MAX_AVATAR_BYTES) {
+            await reader.cancel();
+            return null;
+          }
+          chunks.push(Buffer.from(value));
+        }
+        if (byteLength === 0) {
+          return null;
+        }
+        const bytes = Buffer.concat(chunks, byteLength);
+        const mimeType = avatarMimeType(bytes);
+        if (!mimeType) {
+          return null;
+        }
+        return `data:${mimeType};base64,${bytes.toString("base64")}`;
+      } catch {
+        if (attempt === 2) {
+          return null;
+        }
+        await this.sleep(2 ** attempt * 1e3);
+      }
+    }
+    return null;
+  }
+  async fetchContributors(limit) {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 500) {
+      throw new Error("contributors limit must be between 1 and 500");
+    }
+    const contributors = [];
+    for (let page = 1; page <= 5 && contributors.length < limit; page += 1) {
+      const response = await this.request(
+        "GET",
+        `${this.repositoryPath}/contributors?per_page=100&page=${page}`
+      );
+      if (response === void 0) {
+        break;
+      }
+      if (!Array.isArray(response)) {
+        throw new Error("GitHub returned an invalid contributors response");
+      }
+      for (const contributor of response) {
+        if (typeof contributor.login !== "string" || contributor.login.length === 0 || typeof contributor.avatar_url !== "string" || !Number.isSafeInteger(contributor.contributions) || contributor.contributions < 0 || typeof contributor.type !== "string") {
+          throw new Error("GitHub returned an invalid contributor");
+        }
+        if (contributor.type === "Bot" || contributor.login.endsWith("[bot]")) {
+          continue;
+        }
+        contributors.push({
+          login: contributor.login,
+          contributions: contributor.contributions,
+          avatarDataUrl: null,
+          avatarUrl: contributor.avatar_url
+        });
+        if (contributors.length === limit) {
+          break;
+        }
+      }
+      if (response.length < 100) {
+        break;
+      }
+    }
+    let next = 0;
+    const worker = async () => {
+      while (next < contributors.length) {
+        const index = next;
+        next += 1;
+        const contributor = contributors[index];
+        if (contributor) {
+          contributor.avatarDataUrl = await this.fetchAvatar(contributor.avatarUrl);
+        }
+      }
+    };
+    await Promise.all(
+      Array.from({ length: Math.min(AVATAR_CONCURRENCY, contributors.length) }, () => worker())
+    );
+    return contributors.map(({ avatarUrl: _avatarUrl, ...contributor }) => contributor);
   }
   async publishArtifacts(branch, expectedParentSha, message, artifacts) {
     const currentRef = await this.getRef(branch);
@@ -19609,69 +19938,6 @@ function rawUrl(serverUrl, repository, branch, path) {
 
 // src/svg.ts
 var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-var CHART_STYLES = ["classic", "minimal", "gradient"];
-var PALETTES = {
-  classic: {
-    light: {
-      background: "#ffffff",
-      foreground: "#24292f",
-      muted: "#57606a",
-      grid: "#d8dee4",
-      start: "#d84a3a",
-      end: "#d84a3a"
-    },
-    dark: {
-      background: "#0d1117",
-      foreground: "#e6edf3",
-      muted: "#8b949e",
-      grid: "#30363d",
-      start: "#e05d44",
-      end: "#e05d44"
-    }
-  },
-  minimal: {
-    light: {
-      background: "#ffffff",
-      foreground: "#24292f",
-      muted: "#57606a",
-      grid: "#d8dee4",
-      start: "#2563eb",
-      end: "#2563eb"
-    },
-    dark: {
-      background: "#0d1117",
-      foreground: "#e6edf3",
-      muted: "#8b949e",
-      grid: "#30363d",
-      start: "#60a5fa",
-      end: "#60a5fa"
-    }
-  },
-  gradient: {
-    light: {
-      background: "#f8fafc",
-      foreground: "#172033",
-      muted: "#526072",
-      grid: "#dbe4ee",
-      start: "#059669",
-      end: "#0284c7"
-    },
-    dark: {
-      background: "#0f172a",
-      foreground: "#f8fafc",
-      muted: "#94a3b8",
-      grid: "#27364a",
-      start: "#3ecf8e",
-      end: "#38bdf8"
-    }
-  }
-};
-function validateChartStyle(value) {
-  if (CHART_STYLES.includes(value)) {
-    return value;
-  }
-  throw new Error(`chart-style must be one of: ${CHART_STYLES.join(", ")}`);
-}
 function formatCount(value) {
   if (value >= 1e6) {
     return `${Number((value / 1e6).toFixed(1))}M`;
@@ -19761,7 +20027,7 @@ function renderSvg(history, options = {}) {
   const bottom = 64;
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
-  const palette = PALETTES[style][dark ? "dark" : "light"];
+  const palette = paletteFor(style, dark);
   const onePoint = first.dayNumber === last.dayNumber;
   const coordinates = (day, count) => [
     onePoint ? width - right : left + (day - first.dayNumber) / dateSpan * plotWidth,
@@ -19838,6 +20104,8 @@ async function runAction(client, inputs, stargazerClient) {
   const historyPath = outputFile(inputs.outputPath, "history.json");
   const lightPath = outputFile(inputs.outputPath, "star-history-light.svg");
   const darkPath = outputFile(inputs.outputPath, "star-history-dark.svg");
+  const contributorsLightPath = outputFile(inputs.outputPath, "contributors-light.svg");
+  const contributorsDarkPath = outputFile(inputs.outputPath, "contributors-dark.svg");
   const loaded = await client.loadHistory(inputs.outputBranch, historyPath);
   const stars = await client.fetchRepositoryCount();
   let history;
@@ -19858,6 +20126,7 @@ async function runAction(client, inputs, stargazerClient) {
     };
   }
   history = mergeSnapshot(history, inputs.today, stars);
+  const contributors = inputs.contributors ? await client.fetchContributors(inputs.contributorsLimit) : null;
   const artifacts = [
     { path: historyPath, content: `${JSON.stringify(history, null, 2)}
 ` },
@@ -19874,6 +20143,25 @@ async function runAction(client, inputs, stargazerClient) {
       })
     }
   ];
+  if (contributors) {
+    artifacts.push(
+      {
+        path: contributorsLightPath,
+        content: renderContributorsSvg(contributors, inputs.repository, {
+          style: inputs.chartStyle,
+          animate: inputs.animate
+        })
+      },
+      {
+        path: contributorsDarkPath,
+        content: renderContributorsSvg(contributors, inputs.repository, {
+          dark: true,
+          style: inputs.chartStyle,
+          animate: inputs.animate
+        })
+      }
+    );
+  }
   const published = await client.publishArtifacts(
     inputs.outputBranch,
     loaded.parentSha,
@@ -19886,7 +20174,10 @@ async function runAction(client, inputs, stargazerClient) {
     commitSha: published.commitSha,
     lightUrl: rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, lightPath),
     darkUrl: rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, darkPath),
-    historyUrl: rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, historyPath)
+    historyUrl: rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, historyPath),
+    contributors: contributors?.length ?? null,
+    contributorsLightUrl: contributors ? rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, contributorsLightPath) : null,
+    contributorsDarkUrl: contributors ? rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, contributorsDarkPath) : null
   };
 }
 
@@ -19905,6 +20196,10 @@ async function main() {
     const outputBranch = validateBranch(getInput("output-branch") || "star-history");
     const outputPath = validateOutputPath(getInput("output-path") || ".");
     const chartStyle = validateChartStyle(getInput("chart-style") || "classic");
+    const contributors = getBooleanInput("contributors");
+    const contributorsLimit = validateContributorsLimit(
+      getInput("contributors-limit") || String(DEFAULT_CONTRIBUTORS_LIMIT)
+    );
     const commitMessage = getInput("commit-message") || "chore: update star history";
     if (!commitMessage.trim() || /[\u0000-\u001f\u007f]/.test(commitMessage)) {
       throw new Error("commit-message must be a non-empty single line");
@@ -19917,6 +20212,8 @@ async function main() {
         outputBranch,
         outputPath,
         bootstrap: getBooleanInput("bootstrap"),
+        contributors,
+        contributorsLimit,
         chartStyle,
         animate: getBooleanInput("animate"),
         commitMessage,
@@ -19930,8 +20227,14 @@ async function main() {
     setOutput("light-url", result.lightUrl);
     setOutput("dark-url", result.darkUrl);
     setOutput("history-url", result.historyUrl);
+    if (result.contributors !== null) {
+      setOutput("contributors", result.contributors);
+      setOutput("contributors-light-url", result.contributorsLightUrl);
+      setOutput("contributors-dark-url", result.contributorsDarkUrl);
+    }
+    const contributorSummary = result.contributors === null ? "" : ` and ${result.contributors} contributors`;
     info(
-      result.changed ? `Published star history for ${repository}: ${result.stars} stars` : `Star history is already current: ${result.stars} stars`
+      result.changed ? `Published repository visuals for ${repository}: ${result.stars} stars${contributorSummary}` : `Repository visuals are already current: ${result.stars} stars${contributorSummary}`
     );
   } catch (error2) {
     setFailed(error2 instanceof Error ? error2.message : String(error2));

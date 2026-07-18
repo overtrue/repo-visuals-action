@@ -7,6 +7,7 @@ import {
 } from "./history.ts";
 import type { Artifact, StarHistoryClient } from "./github.ts";
 import { outputFile, rawUrl } from "./paths.ts";
+import { renderContributorsSvg } from "./contributors.ts";
 import { renderSvg, type ChartStyle } from "./svg.ts";
 
 export interface ActionInputs {
@@ -15,6 +16,8 @@ export interface ActionInputs {
   outputBranch: string;
   outputPath: string;
   bootstrap: boolean;
+  contributors: boolean;
+  contributorsLimit: number;
   chartStyle: ChartStyle;
   animate: boolean;
   commitMessage: string;
@@ -28,6 +31,9 @@ export interface ActionResult {
   lightUrl: string;
   darkUrl: string;
   historyUrl: string;
+  contributors: number | null;
+  contributorsLightUrl: string | null;
+  contributorsDarkUrl: string | null;
 }
 
 type StargazerClient = Pick<StarHistoryClient, "fetchStargazerTimestamps">;
@@ -40,6 +46,8 @@ export async function runAction(
   const historyPath = outputFile(inputs.outputPath, "history.json");
   const lightPath = outputFile(inputs.outputPath, "star-history-light.svg");
   const darkPath = outputFile(inputs.outputPath, "star-history-dark.svg");
+  const contributorsLightPath = outputFile(inputs.outputPath, "contributors-light.svg");
+  const contributorsDarkPath = outputFile(inputs.outputPath, "contributors-dark.svg");
   const loaded = await client.loadHistory(inputs.outputBranch, historyPath);
   const stars = await client.fetchRepositoryCount();
 
@@ -62,6 +70,9 @@ export async function runAction(
   }
 
   history = mergeSnapshot(history, inputs.today, stars);
+  const contributors = inputs.contributors
+    ? await client.fetchContributors(inputs.contributorsLimit)
+    : null;
   const artifacts: Artifact[] = [
     { path: historyPath, content: `${JSON.stringify(history, null, 2)}\n` },
     {
@@ -77,6 +88,25 @@ export async function runAction(
       }),
     },
   ];
+  if (contributors) {
+    artifacts.push(
+      {
+        path: contributorsLightPath,
+        content: renderContributorsSvg(contributors, inputs.repository, {
+          style: inputs.chartStyle,
+          animate: inputs.animate,
+        }),
+      },
+      {
+        path: contributorsDarkPath,
+        content: renderContributorsSvg(contributors, inputs.repository, {
+          dark: true,
+          style: inputs.chartStyle,
+          animate: inputs.animate,
+        }),
+      },
+    );
+  }
   const published = await client.publishArtifacts(
     inputs.outputBranch,
     loaded.parentSha,
@@ -91,5 +121,12 @@ export async function runAction(
     lightUrl: rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, lightPath),
     darkUrl: rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, darkPath),
     historyUrl: rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, historyPath),
+    contributors: contributors?.length ?? null,
+    contributorsLightUrl: contributors
+      ? rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, contributorsLightPath)
+      : null,
+    contributorsDarkUrl: contributors
+      ? rawUrl(inputs.serverUrl, inputs.repository, inputs.outputBranch, contributorsDarkPath)
+      : null,
   };
 }
