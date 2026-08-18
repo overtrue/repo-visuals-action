@@ -37,6 +37,7 @@ async function main(): Promise<void> {
       core.setSecret(stargazersToken);
     }
     const repository = validateRepository(process.env.GITHUB_REPOSITORY ?? "");
+    const repositoryId = Number(process.env.GITHUB_REPOSITORY_ID);
     const apiUrl = process.env.GITHUB_API_URL ?? "https://api.github.com";
     const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
     const outputBranch = validateBranch(core.getInput("output-branch") || "star-history");
@@ -101,6 +102,7 @@ async function main(): Promise<void> {
       new GitHubClient(token, repository, apiUrl),
       {
         repository,
+        repositoryId: Number.isSafeInteger(repositoryId) && repositoryId > 0 ? repositoryId : null,
         serverUrl,
         outputBranch,
         outputPath,

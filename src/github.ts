@@ -34,6 +34,7 @@ interface BlobResponse {
 }
 
 interface RepositoryResponse {
+  id?: unknown;
   stargazers_count: number;
 }
 
@@ -65,6 +66,7 @@ export interface Artifact {
 
 export interface StarHistoryClient {
   loadHistory(branch: string, path: string): Promise<LoadedHistory>;
+  fetchRepositoryId(repository: string): Promise<number | null>;
   fetchStargazerTimestamps(): Promise<string[]>;
   fetchRepositoryCount(): Promise<number>;
   fetchContributors(limit: number): Promise<Contributor[]>;
@@ -272,6 +274,21 @@ export class GitHubClient implements StarHistoryClient {
       if (response.length < 100) {
         return timestamps;
       }
+    }
+  }
+
+  async fetchRepositoryId(repository: string): Promise<number | null> {
+    const path = `/repos/${repository.split("/").map(encodeURIComponent).join("/")}`;
+    try {
+      // GitHub redirects a renamed repository to its current location, so a former
+      // name still resolves to the same numeric id.
+      const response = await this.request<RepositoryResponse>("GET", path);
+      return Number.isSafeInteger(response.id) ? (response.id as number) : null;
+    } catch (error) {
+      if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
+        return null;
+      }
+      throw error;
     }
   }
 

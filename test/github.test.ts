@@ -401,3 +401,25 @@ test("fails closed when the output branch changes during generation", async () =
     /changed during generation/,
   );
 });
+
+test("resolves a former repository name to its numeric id", async () => {
+  const records: RequestRecord[] = [];
+  const client = new GitHubClient(
+    "token",
+    "overtrue/repo-visuals-action",
+    "https://api.github.com",
+    fakeFetch([jsonResponse({ id: 1, stargazers_count: 3 }), jsonResponse({}, 404)], records),
+    async () => {},
+    () => 0,
+  );
+
+  assert.equal(await client.fetchRepositoryId("overtrue/star-history-action"), 1);
+  assert.equal(await client.fetchRepositoryId("overtrue/gone"), null);
+  assert.deepEqual(
+    records.map(({ url }) => url),
+    [
+      "https://api.github.com/repos/overtrue/star-history-action",
+      "https://api.github.com/repos/overtrue/gone",
+    ],
+  );
+});

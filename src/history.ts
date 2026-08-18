@@ -33,6 +33,14 @@ export function dayFromNumber(value: number): string {
   return new Date(value * 86_400_000).toISOString().slice(0, 10);
 }
 
+export function readRepository(value: unknown): string | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+  const repository = (value as Record<string, unknown>).repository;
+  return typeof repository === "string" ? repository : null;
+}
+
 export function validateHistory(value: unknown, repository: string): StarHistory {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("invalid star history document");
