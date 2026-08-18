@@ -1,10 +1,14 @@
 {
   "schema": 1,
-  "repository": "overtrue/star-history-action",
+  "repository": "overtrue/repo-visuals-action",
   "points": [
     [
       "2026-07-18",
       3
+    ],
+    [
+      "2026-08-18",
+      4
     ]
   ]
 }
