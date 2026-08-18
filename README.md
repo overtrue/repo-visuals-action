@@ -196,6 +196,8 @@ When `output-path` is set, prefix every filename with that directory. For strong
 
 The output branch contains `history.json`, `star-history-light.svg`, `star-history-dark.svg`, plus `contributors-light.svg` and `contributors-dark.svg` when `contributors: "true"`.
 
+`history.json` records the repository it belongs to, so history from another repository — a fork that carries the output branch, for example — is never appended to. Renaming the repository is safe: the action confirms the stored name still resolves to the same repository and rewrites it on the next run.
+
 ## Historical bootstrap
 
 GitHub now limits the stargazer listing endpoint to repository admins and collaborators. To reconstruct available history on the first run, provide a fine-grained personal access token owned by an admin or collaborator with read-only repository metadata access:

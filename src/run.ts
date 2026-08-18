@@ -1,6 +1,7 @@
 import {
   aggregateStargazers,
   mergeSnapshot,
+  readRepository,
   SCHEMA_VERSION,
   validateHistory,
   type StarHistory,
@@ -13,6 +14,7 @@ import type { ChartStyle, ChartVariant, PaletteOverrides } from "./theme.ts";
 
 export interface ActionInputs {
   repository: string;
+  repositoryId: number | null;
   serverUrl: string;
   outputBranch: string;
   outputPath: string;
@@ -45,6 +47,23 @@ export interface ActionResult {
 
 type StargazerClient = Pick<StarHistoryClient, "fetchStargazerTimestamps">;
 
+// A repository rename leaves the stored history under the former name. GitHub keeps
+// resolving that name to the same numeric id, which separates a rename from history
+// belonging to a genuinely different repository (a fork carrying the output branch).
+async function resolveStoredRepository(
+  client: StarHistoryClient,
+  inputs: ActionInputs,
+  stored: string,
+): Promise<string> {
+  if (stored === inputs.repository) {
+    return stored;
+  }
+  if (inputs.repositoryId !== null && (await client.fetchRepositoryId(stored)) === inputs.repositoryId) {
+    return stored;
+  }
+  throw new Error(`star history belongs to ${stored}, not ${inputs.repository}`);
+}
+
 export async function runAction(
   client: StarHistoryClient,
   inputs: ActionInputs,
@@ -60,7 +79,9 @@ export async function runAction(
 
   let history: StarHistory;
   if (loaded.history) {
-    history = validateHistory(loaded.history, inputs.repository);
+    const stored = readRepository(loaded.history) ?? inputs.repository;
+    history = validateHistory(loaded.history, await resolveStoredRepository(client, inputs, stored));
+    history = { ...history, repository: inputs.repository };
   } else {
     let timestamps: string[] = [];
     if (inputs.bootstrap) {

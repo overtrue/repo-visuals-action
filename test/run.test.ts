@@ -15,6 +15,8 @@ class FakeClient implements StarHistoryClient {
   bootstrapCalls = 0;
   contributorCalls = 0;
   contributorLimit: number | null = null;
+  lookedUpRepositories: string[] = [];
+  repositoryIds = new Map<string, number>();
   private readonly loaded: LoadedHistory;
   private readonly stars: number;
 
@@ -25,6 +27,11 @@ class FakeClient implements StarHistoryClient {
 
   async loadHistory(): Promise<LoadedHistory> {
     return this.loaded;
+  }
+
+  async fetchRepositoryId(repository: string): Promise<number | null> {
+    this.lookedUpRepositories.push(repository);
+    return this.repositoryIds.get(repository) ?? null;
   }
 
   async fetchStargazerTimestamps(): Promise<string[]> {
@@ -61,6 +68,7 @@ class FakeClient implements StarHistoryClient {
 
 const inputs = (overrides: Partial<ActionInputs> = {}): ActionInputs => ({
   repository: "rustfs/rustfs",
+  repositoryId: 42,
   serverUrl: "https://github.com",
   outputBranch: "star-history",
   outputPath: "assets/stars",
@@ -137,4 +145,66 @@ test("updates existing history without refetching stargazers", async () => {
   await runAction(client, inputs());
 
   assert.equal(client.bootstrapCalls, 0);
+});
+
+test("adopts history stored under a former repository name", async () => {
+  const client = new FakeClient(
+    {
+      history: {
+        schema: 1,
+        repository: "rustfs/rustfs-old",
+        points: [["2026-07-17", 29_900]],
+      },
+      parentSha: "parent",
+    },
+    29_944,
+  );
+  client.repositoryIds.set("rustfs/rustfs-old", 42);
+  await runAction(client, inputs());
+
+  assert.deepEqual(client.lookedUpRepositories, ["rustfs/rustfs-old"]);
+  const stored = JSON.parse(client.artifacts[0]?.content ?? "") as {
+    repository: string;
+    points: [string, number][];
+  };
+  assert.equal(stored.repository, "rustfs/rustfs");
+  assert.deepEqual(stored.points, [["2026-07-17", 29_900], ["2026-07-18", 29_944]]);
+});
+
+test("rejects history belonging to a different repository", async () => {
+  const client = new FakeClient(
+    {
+      history: {
+        schema: 1,
+        repository: "other/repo",
+        points: [["2026-07-17", 29_900]],
+      },
+      parentSha: "parent",
+    },
+    29_944,
+  );
+  client.repositoryIds.set("other/repo", 7);
+
+  await assert.rejects(() => runAction(client, inputs()), /belongs to other\/repo/);
+});
+
+test("rejects a renamed history when the repository id is unknown", async () => {
+  const client = new FakeClient(
+    {
+      history: {
+        schema: 1,
+        repository: "rustfs/rustfs-old",
+        points: [["2026-07-17", 29_900]],
+      },
+      parentSha: "parent",
+    },
+    29_944,
+  );
+  client.repositoryIds.set("rustfs/rustfs-old", 42);
+
+  await assert.rejects(
+    () => runAction(client, inputs({ repositoryId: null })),
+    /belongs to rustfs\/rustfs-old/,
+  );
+  assert.deepEqual(client.lookedUpRepositories, []);
 });
