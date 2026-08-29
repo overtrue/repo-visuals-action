@@ -87,12 +87,23 @@ test("applies avatar layout, shape, title, and color overrides", () => {
   assert.match(svg, /fill="#101828"/);
 });
 
+test("keeps the editorial header visible at minimum padding", () => {
+  const svg = renderContributorsSvg(contributors, "rustfs/rustfs", {
+    animate: false,
+    layout: { padding: 8 },
+  });
+
+  assert.match(svg, /<text x="8" y="14"[^>]*>REPOSITORY PEOPLE/);
+});
+
 test("highlights the leading contributors", () => {
   const svg = renderContributorsSvg(contributors, "rustfs/rustfs", { animate: false });
 
   assert.match(svg, /Led by overtrue/);
   assert.match(svg, /#1 overtrue, 1516 contributions/);
-  assert.match(svg, /stroke="url\(#wall-accent\)" stroke-width="2\.5"/);
+  assert.match(svg, /stroke="url\(#wall-accent\)" stroke-width="2"/);
+  assert.match(svg, />1<\/text>/);
+  assert.match(svg, />2<\/text>/);
 });
 
 test("validates contributor limits and layout inputs", () => {

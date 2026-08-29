@@ -151,7 +151,7 @@ function definitions(palette: Palette, variant: ChartVariant, animate: boolean):
   ];
   if (variant !== "line") {
     elements.push(
-      `<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${palette.start}" stop-opacity="0.30"/><stop offset="55%" stop-color="${palette.end}" stop-opacity="0.10"/><stop offset="100%" stop-color="${palette.end}" stop-opacity="0.01"/></linearGradient>`,
+      `<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${palette.start}" stop-opacity="0.22"/><stop offset="55%" stop-color="${palette.end}" stop-opacity="0.06"/><stop offset="100%" stop-color="${palette.end}" stop-opacity="0"/></linearGradient>`,
     );
   }
   elements.push(
@@ -159,8 +159,8 @@ function definitions(palette: Palette, variant: ChartVariant, animate: boolean):
   );
   if (variant === "glow") {
     elements.push(
-      `<radialGradient id="surface-glow" cx="78%" cy="14%" r="80%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.14"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
-      '<filter id="trend-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>',
+      `<radialGradient id="surface-glow" cx="82%" cy="8%" r="70%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.08"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
+      '<filter id="trend-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>',
     );
   }
   elements.push("</defs>");
@@ -179,6 +179,15 @@ function definitions(palette: Palette, variant: ChartVariant, animate: boolean):
     );
   }
   return elements;
+}
+
+function sampleTrendPoints(points: Array<[number, number]>, limit = 32): Array<[number, number]> {
+  if (points.length <= limit) {
+    return points.slice(0, -1);
+  }
+  return [...new Set(Array.from({ length: limit }, (_, index) => Math.round((index * (points.length - 1)) / (limit - 1))))]
+    .slice(0, -1)
+    .map((index) => points[index]!);
 }
 
 export function renderSvg(history: StarHistory, options: SvgOptions = {}): string {
@@ -205,8 +214,8 @@ export function renderSvg(history: StarHistory, options: SvgOptions = {}): strin
   const height = 540;
   const left = 76;
   const right = 40;
-  const top = 104;
-  const bottom = 60;
+  const top = 122;
+  const bottom = 62;
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
   const onePoint = first.dayNumber === last.dayNumber;
@@ -221,11 +230,12 @@ export function renderSvg(history: StarHistory, options: SvgOptions = {}): strin
   const lastCoordinates = points.at(-1)!;
   const baseline = (top + plotHeight).toFixed(1);
   const areaPath = `${linePath} L ${lastCoordinates[0].toFixed(1)} ${baseline} L ${firstCoordinates[0].toFixed(1)} ${baseline} Z`;
+  const sampledPoints = sampleTrendPoints(points);
 
   const trendClass = animate ? ' class="trend-enter"' : "";
   const markerClass = animate ? ' class="marker-enter"' : "";
   const pulseClass = animate ? ' class="marker-pulse"' : "";
-  const cardRadius = variant === "line" ? 14 : 16;
+  const cardRadius = 18;
 
   const elements = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -239,14 +249,15 @@ export function renderSvg(history: StarHistory, options: SvgOptions = {}): strin
     elements.push(`<rect width="${width}" height="${height}" fill="url(#surface-glow)" rx="${cardRadius}"/>`);
   }
 
-  // Header: identity on the left, current total on the right.
-  const iconFill = variant === "line" ? "none" : "url(#trend)";
+  // Editorial header: a compact data mark, utility label, and clear total.
   elements.push(
-    `<path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" transform="translate(${left} 30) scale(.9)" fill="${iconFill}" stroke="url(#trend)" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"/>`,
-    `<text x="${left + 34}" y="46" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700">${escapeXml(title)}</text>`,
-    `<text x="${left + 34}" y="68" fill="${palette.muted}" font-family="${FONT}" font-size="13">${escapeXml(history.repository)}</text>`,
-    `<text x="${width - right}" y="50" fill="${palette.foreground}" font-family="${FONT}" font-size="30" font-weight="700" text-anchor="end">${groupThousands(last.count)}</text>`,
-    `<text x="${width - right}" y="70" fill="${palette.muted}" font-family="${FONT}" font-size="12" font-weight="500" letter-spacing="1.5" text-anchor="end">STARS</text>`,
+    `<text x="${left}" y="28" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY SIGNAL · STARS</text>`,
+    `<path d="M12 1c.8 7.1 2.9 9.2 10 10-7.1.8-9.2 2.9-10 10-.8-7.1-2.9-9.2-10-10 7.1-.8 9.2-2.9 10-10Z" transform="translate(${left} 42) scale(.78)" fill="url(#trend)" aria-hidden="true"/>`,
+    `<text x="${left + 30}" y="62" fill="${palette.foreground}" font-family="${FONT}" font-size="25" font-weight="700" letter-spacing="-0.5">${escapeXml(title)}</text>`,
+    `<text x="${left + 30}" y="84" fill="${palette.muted}" font-family="${FONT}" font-size="13">${escapeXml(history.repository)}</text>`,
+    `<text x="${width - right}" y="60" fill="${palette.foreground}" font-family="${FONT}" font-size="30" font-weight="700" letter-spacing="-0.6" text-anchor="end">${groupThousands(last.count)}</text>`,
+    `<text x="${width - right}" y="82" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1.5" text-anchor="end">CURRENT STARS</text>`,
+    `<line x1="${left}" y1="101" x2="${width - right}" y2="101" stroke="${palette.grid}" stroke-width="1"/>`,
   );
 
   // Horizontal grid + y axis labels.
@@ -262,6 +273,7 @@ export function renderSvg(history: StarHistory, options: SvgOptions = {}): strin
   for (const tick of dateTicks(first.dayNumber, last.dayNumber)) {
     const [x] = coordinates(tick, 0);
     elements.push(
+      `<line x1="${x.toFixed(1)}" y1="${top}" x2="${x.toFixed(1)}" y2="${top + plotHeight}" stroke="${palette.grid}" stroke-width="1" opacity="0.45"/>`,
       `<text x="${x.toFixed(1)}" y="${top + plotHeight + 28}" fill="${palette.muted}" font-family="${FONT}" font-size="13" text-anchor="middle">${dateLabel(dayFromNumber(tick), longRange)}</text>`,
     );
   }
@@ -273,13 +285,19 @@ export function renderSvg(history: StarHistory, options: SvgOptions = {}): strin
   }
   if (variant === "glow") {
     elements.push(
-      `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.16" filter="url(#trend-glow)"/>`,
+      `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.10" filter="url(#trend-glow)"/>`,
     );
   }
   elements.push(
     `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="${variant === "line" ? 2.5 : 3}" stroke-linecap="round" stroke-linejoin="round"/>`,
-    "</g>",
   );
+
+  // Sparse observations give dense daily histories an editorial dot rhythm.
+  elements.push(`<g data-point-count="${sampledPoints.length}" fill="${palette.foreground}" opacity="0.68">`);
+  for (const [x, y] of sampledPoints) {
+    elements.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8"/>`);
+  }
+  elements.push("</g>", "</g>");
 
   // Endpoint marker with a soft halo (fixes the old value-label collision).
   elements.push(
@@ -289,11 +307,11 @@ export function renderSvg(history: StarHistory, options: SvgOptions = {}): strin
     "</g>",
   );
 
-  // Footer: tracked range on the left, refresh date on the right.
+  // Footer: quiet utility metadata, aligned to the plot edges.
   const rangeLabel = onePoint ? monthYear(last.day) : `${monthYear(first.day)} – ${monthYear(last.day)}`;
   elements.push(
-    `<text x="${left}" y="${height - 18}" fill="${palette.muted}" font-family="${FONT}" font-size="12" font-weight="500">${rangeLabel}</text>`,
-    `<text x="${width - right}" y="${height - 18}" fill="${palette.muted}" font-family="${FONT}" font-size="12" font-weight="500" text-anchor="end">Updated ${last.day}</text>`,
+    `<text x="${left}" y="${height - 16}" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1">TRACKED · ${rangeLabel}</text>`,
+    `<text x="${width - right}" y="${height - 16}" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1" text-anchor="end">UPDATED · ${last.day}</text>`,
     "</svg>",
   );
   return `${elements.join("\n")}\n`;
