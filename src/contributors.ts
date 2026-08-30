@@ -118,14 +118,15 @@ export function renderContributorsSvg(
   const { avatarSize, gap, columns, padding, shape } = layout;
   const radius = cornerRadius(shape, avatarSize);
 
-  const headerHeight = 64;
+  const headerHeight = 82;
   const gridTop = padding + headerHeight;
   const rows = Math.max(1, Math.ceil(contributors.length / columns));
   const gridHeight = contributors.length === 0 ? 72 : rows * avatarSize + (rows - 1) * gap;
   // Keep the card wide enough for the header even with narrow avatar grids.
   const width = Math.max(420, padding * 2 + columns * avatarSize + (columns - 1) * gap);
   const height = gridTop + gridHeight + padding;
-  const cardRadius = 16;
+  const cardRadius = 18;
+  const headerOffset = Math.max(0, 22 - padding);
 
   const countLabel = `${contributors.length} ${contributors.length === 1 ? "contributor" : "contributors"}`;
   const topContributors = contributors.slice(0, 10).map(({ login }) => login).join(", ");
@@ -142,7 +143,7 @@ export function renderContributorsSvg(
     "<defs>",
     `<linearGradient id="wall-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${palette.start}"/><stop offset="100%" stop-color="${palette.end}"/></linearGradient>`,
     `<clipPath id="avatar-clip"><rect width="${avatarSize}" height="${avatarSize}" rx="${radius}"/></clipPath>`,
-    `<radialGradient id="wall-surface-glow" cx="80%" cy="0%" r="90%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.10"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
+    `<radialGradient id="wall-surface-glow" cx="84%" cy="0%" r="76%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.06"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
     "</defs>",
   ];
   if (animate) {
@@ -159,19 +160,14 @@ export function renderContributorsSvg(
     `<rect width="${width}" height="${Math.round(height / 2)}" fill="url(#wall-surface-glow)" rx="${cardRadius}"/>`,
   );
 
-  // Header.
-  const leadLabel = contributors.length > 0 && contributors[0] ? `Led by ${escapeXml(contributors[0].login)}` : "";
+  // Editorial header: a data glyph and a single hairline establish hierarchy.
   elements.push(
-    `<g transform="translate(${padding} ${padding - 2})" fill="none" stroke="url(#wall-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>`,
-    `<text x="${padding + 36}" y="${padding + 12}" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700">${escapeXml(title)}</text>`,
-    `<text x="${padding + 36}" y="${padding + 34}" fill="${palette.muted}" font-family="${FONT}" font-size="13">${escapeXml(repository)}</text>`,
-    `<text x="${width - padding}" y="${padding + 8}" fill="${palette.foreground}" font-family="${FONT}" font-size="18" font-weight="700" text-anchor="end">${countLabel}</text>`,
+    `<text x="${padding}" y="${padding - 8 + headerOffset}" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY PEOPLE · ${escapeXml(repository)}</text>`,
+    `<g transform="translate(${padding} ${padding + 4 + headerOffset})" fill="url(#wall-accent)" aria-hidden="true"><circle cx="5" cy="5" r="3.5"/><circle cx="17" cy="5" r="3.5"/><circle cx="11" cy="15" r="3.5"/></g>`,
+    `<text x="${padding + 30}" y="${padding + 25 + headerOffset}" fill="${palette.foreground}" font-family="${FONT}" font-size="24" font-weight="700" letter-spacing="-0.4">${escapeXml(title)}</text>`,
+    `<text x="${width - padding}" y="${padding + 23 + headerOffset}" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700" letter-spacing="-0.4" text-anchor="end">${countLabel}</text>`,
+    `<line x1="${padding}" y1="${padding + 61 + headerOffset}" x2="${width - padding}" y2="${padding + 61 + headerOffset}" stroke="${palette.grid}" stroke-width="1"/>`,
   );
-  if (leadLabel) {
-    elements.push(
-      `<text x="${width - padding}" y="${padding + 30}" fill="${palette.muted}" font-family="${FONT}" font-size="13" text-anchor="end">${leadLabel}</text>`,
-    );
-  }
   elements.push(`<g${wallClass}>`);
 
   if (contributors.length === 0) {
@@ -206,7 +202,7 @@ export function renderContributorsSvg(
       }
       if (topThree) {
         elements.push(
-          `<rect x="0.75" y="0.75" width="${avatarSize - 1.5}" height="${avatarSize - 1.5}" rx="${Math.max(0, radius - 0.75)}" fill="none" stroke="url(#wall-accent)" stroke-width="2.5"/>`,
+          `<rect x="0.75" y="0.75" width="${avatarSize - 1.5}" height="${avatarSize - 1.5}" rx="${Math.max(0, radius - 0.75)}" fill="none" stroke="url(#wall-accent)" stroke-width="2"/>`,
         );
       } else {
         elements.push(

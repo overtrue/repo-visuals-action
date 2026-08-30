@@ -19339,20 +19339,20 @@ var THEMES = {
   classic: {
     variant: "area",
     light: {
-      background: "#ffffff",
-      foreground: "#24292f",
-      muted: "#57606a",
-      grid: "#d8dee4",
-      start: "#d84a3a",
-      end: "#d84a3a"
+      background: "#f5f4f0",
+      foreground: "#1c1c1a",
+      muted: "#74716a",
+      grid: "#dedbd3",
+      start: "#f0522d",
+      end: "#f0522d"
     },
     dark: {
-      background: "#0d1117",
-      foreground: "#e6edf3",
-      muted: "#8b949e",
-      grid: "#30363d",
-      start: "#e05d44",
-      end: "#e05d44"
+      background: "#1b1b19",
+      foreground: "#f5f4f0",
+      muted: "#aaa69c",
+      grid: "#393833",
+      start: "#ff6b45",
+      end: "#ff6b45"
     }
   },
   minimal: {
@@ -19491,20 +19491,20 @@ var THEMES = {
   mono: {
     variant: "line",
     light: {
-      background: "#ffffff",
-      foreground: "#111827",
-      muted: "#6b7280",
-      grid: "#e5e7eb",
-      start: "#374151",
-      end: "#111827"
+      background: "#f5f4f0",
+      foreground: "#1c1c1a",
+      muted: "#74716a",
+      grid: "#dedbd3",
+      start: "#696762",
+      end: "#1c1c1a"
     },
     dark: {
-      background: "#0a0a0a",
-      foreground: "#f4f4f5",
-      muted: "#a1a1aa",
-      grid: "#262626",
-      start: "#d4d4d8",
-      end: "#fafafa"
+      background: "#1b1b19",
+      foreground: "#f5f4f0",
+      muted: "#aaa69c",
+      grid: "#393833",
+      start: "#b8b4aa",
+      end: "#f5f4f0"
     }
   }
 };
@@ -19618,13 +19618,14 @@ function renderContributorsSvg(contributors, repository, options = {}) {
   const layout = { ...DEFAULT_CONTRIBUTOR_LAYOUT, ...options.layout };
   const { avatarSize, gap, columns, padding, shape } = layout;
   const radius = cornerRadius(shape, avatarSize);
-  const headerHeight = 64;
+  const headerHeight = 82;
   const gridTop = padding + headerHeight;
   const rows = Math.max(1, Math.ceil(contributors.length / columns));
   const gridHeight = contributors.length === 0 ? 72 : rows * avatarSize + (rows - 1) * gap;
   const width = Math.max(420, padding * 2 + columns * avatarSize + (columns - 1) * gap);
   const height = gridTop + gridHeight + padding;
-  const cardRadius = 16;
+  const cardRadius = 18;
+  const headerOffset = Math.max(0, 22 - padding);
   const countLabel = `${contributors.length} ${contributors.length === 1 ? "contributor" : "contributors"}`;
   const topContributors = contributors.slice(0, 10).map(({ login }) => login).join(", ");
   const description = contributors.length === 0 ? `No contributors found for ${repository}.` : `${countLabel} for ${repository}. Top contributors: ${topContributors}.`;
@@ -19637,7 +19638,7 @@ function renderContributorsSvg(contributors, repository, options = {}) {
     "<defs>",
     `<linearGradient id="wall-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${palette.start}"/><stop offset="100%" stop-color="${palette.end}"/></linearGradient>`,
     `<clipPath id="avatar-clip"><rect width="${avatarSize}" height="${avatarSize}" rx="${radius}"/></clipPath>`,
-    `<radialGradient id="wall-surface-glow" cx="80%" cy="0%" r="90%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.10"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
+    `<radialGradient id="wall-surface-glow" cx="84%" cy="0%" r="76%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.06"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
     "</defs>"
   ];
   if (animate) {
@@ -19653,18 +19654,13 @@ function renderContributorsSvg(contributors, repository, options = {}) {
     `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" fill="${palette.background}" stroke="${palette.grid}" stroke-width="1" rx="${cardRadius}"/>`,
     `<rect width="${width}" height="${Math.round(height / 2)}" fill="url(#wall-surface-glow)" rx="${cardRadius}"/>`
   );
-  const leadLabel = contributors.length > 0 && contributors[0] ? `Led by ${escapeXml(contributors[0].login)}` : "";
   elements.push(
-    `<g transform="translate(${padding} ${padding - 2})" fill="none" stroke="url(#wall-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>`,
-    `<text x="${padding + 36}" y="${padding + 12}" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700">${escapeXml(title)}</text>`,
-    `<text x="${padding + 36}" y="${padding + 34}" fill="${palette.muted}" font-family="${FONT}" font-size="13">${escapeXml(repository)}</text>`,
-    `<text x="${width - padding}" y="${padding + 8}" fill="${palette.foreground}" font-family="${FONT}" font-size="18" font-weight="700" text-anchor="end">${countLabel}</text>`
+    `<text x="${padding}" y="${padding - 8 + headerOffset}" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY PEOPLE \xB7 ${escapeXml(repository)}</text>`,
+    `<g transform="translate(${padding} ${padding + 4 + headerOffset})" fill="url(#wall-accent)" aria-hidden="true"><circle cx="5" cy="5" r="3.5"/><circle cx="17" cy="5" r="3.5"/><circle cx="11" cy="15" r="3.5"/></g>`,
+    `<text x="${padding + 30}" y="${padding + 25 + headerOffset}" fill="${palette.foreground}" font-family="${FONT}" font-size="24" font-weight="700" letter-spacing="-0.4">${escapeXml(title)}</text>`,
+    `<text x="${width - padding}" y="${padding + 23 + headerOffset}" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700" letter-spacing="-0.4" text-anchor="end">${countLabel}</text>`,
+    `<line x1="${padding}" y1="${padding + 61 + headerOffset}" x2="${width - padding}" y2="${padding + 61 + headerOffset}" stroke="${palette.grid}" stroke-width="1"/>`
   );
-  if (leadLabel) {
-    elements.push(
-      `<text x="${width - padding}" y="${padding + 30}" fill="${palette.muted}" font-family="${FONT}" font-size="13" text-anchor="end">${leadLabel}</text>`
-    );
-  }
   elements.push(`<g${wallClass}>`);
   if (contributors.length === 0) {
     elements.push(
@@ -19698,7 +19694,7 @@ function renderContributorsSvg(contributors, repository, options = {}) {
       }
       if (topThree) {
         elements.push(
-          `<rect x="0.75" y="0.75" width="${avatarSize - 1.5}" height="${avatarSize - 1.5}" rx="${Math.max(0, radius - 0.75)}" fill="none" stroke="url(#wall-accent)" stroke-width="2.5"/>`
+          `<rect x="0.75" y="0.75" width="${avatarSize - 1.5}" height="${avatarSize - 1.5}" rx="${Math.max(0, radius - 0.75)}" fill="none" stroke="url(#wall-accent)" stroke-width="2"/>`
         );
       } else {
         elements.push(
@@ -20342,7 +20338,7 @@ function definitions(palette, variant, animate) {
   ];
   if (variant !== "line") {
     elements.push(
-      `<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${palette.start}" stop-opacity="0.30"/><stop offset="55%" stop-color="${palette.end}" stop-opacity="0.10"/><stop offset="100%" stop-color="${palette.end}" stop-opacity="0.01"/></linearGradient>`
+      `<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${palette.start}" stop-opacity="0.22"/><stop offset="55%" stop-color="${palette.end}" stop-opacity="0.06"/><stop offset="100%" stop-color="${palette.end}" stop-opacity="0"/></linearGradient>`
     );
   }
   elements.push(
@@ -20350,8 +20346,8 @@ function definitions(palette, variant, animate) {
   );
   if (variant === "glow") {
     elements.push(
-      `<radialGradient id="surface-glow" cx="78%" cy="14%" r="80%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.14"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
-      '<filter id="trend-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>'
+      `<radialGradient id="surface-glow" cx="82%" cy="8%" r="70%"><stop offset="0%" stop-color="${palette.end}" stop-opacity="0.08"/><stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/></radialGradient>`,
+      '<filter id="trend-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>'
     );
   }
   elements.push("</defs>");
@@ -20370,6 +20366,12 @@ function definitions(palette, variant, animate) {
     );
   }
   return elements;
+}
+function sampleTrendPoints(points, limit = 32) {
+  if (points.length <= limit) {
+    return points.slice(0, -1);
+  }
+  return [...new Set(Array.from({ length: limit }, (_, index) => Math.round(index * (points.length - 1) / (limit - 1))))].slice(0, -1).map((index) => points[index]);
 }
 function renderSvg(history, options = {}) {
   const dark = options.dark ?? false;
@@ -20393,8 +20395,8 @@ function renderSvg(history, options = {}) {
   const height = 540;
   const left = 76;
   const right = 40;
-  const top = 104;
-  const bottom = 60;
+  const top = 122;
+  const bottom = 62;
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
   const onePoint = first.dayNumber === last.dayNumber;
@@ -20408,10 +20410,11 @@ function renderSvg(history, options = {}) {
   const lastCoordinates = points.at(-1);
   const baseline = (top + plotHeight).toFixed(1);
   const areaPath = `${linePath} L ${lastCoordinates[0].toFixed(1)} ${baseline} L ${firstCoordinates[0].toFixed(1)} ${baseline} Z`;
+  const sampledPoints = sampleTrendPoints(points);
   const trendClass = animate ? ' class="trend-enter"' : "";
   const markerClass = animate ? ' class="marker-enter"' : "";
   const pulseClass = animate ? ' class="marker-pulse"' : "";
-  const cardRadius = variant === "line" ? 14 : 16;
+  const cardRadius = 18;
   const elements = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-variant="${variant}" data-animated="${animate}">`,
@@ -20423,13 +20426,14 @@ function renderSvg(history, options = {}) {
   if (variant === "glow") {
     elements.push(`<rect width="${width}" height="${height}" fill="url(#surface-glow)" rx="${cardRadius}"/>`);
   }
-  const iconFill = variant === "line" ? "none" : "url(#trend)";
   elements.push(
-    `<path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" transform="translate(${left} 30) scale(.9)" fill="${iconFill}" stroke="url(#trend)" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"/>`,
-    `<text x="${left + 34}" y="46" fill="${palette.foreground}" font-family="${FONT2}" font-size="22" font-weight="700">${escapeXml2(title)}</text>`,
-    `<text x="${left + 34}" y="68" fill="${palette.muted}" font-family="${FONT2}" font-size="13">${escapeXml2(history.repository)}</text>`,
-    `<text x="${width - right}" y="50" fill="${palette.foreground}" font-family="${FONT2}" font-size="30" font-weight="700" text-anchor="end">${groupThousands(last.count)}</text>`,
-    `<text x="${width - right}" y="70" fill="${palette.muted}" font-family="${FONT2}" font-size="12" font-weight="500" letter-spacing="1.5" text-anchor="end">STARS</text>`
+    `<text x="${left}" y="28" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY SIGNAL \xB7 STARS</text>`,
+    `<path d="M12 1c.8 7.1 2.9 9.2 10 10-7.1.8-9.2 2.9-10 10-.8-7.1-2.9-9.2-10-10 7.1-.8 9.2-2.9 10-10Z" transform="translate(${left} 42) scale(.78)" fill="url(#trend)" aria-hidden="true"/>`,
+    `<text x="${left + 30}" y="62" fill="${palette.foreground}" font-family="${FONT2}" font-size="25" font-weight="700" letter-spacing="-0.5">${escapeXml2(title)}</text>`,
+    `<text x="${left + 30}" y="84" fill="${palette.muted}" font-family="${FONT2}" font-size="13">${escapeXml2(history.repository)}</text>`,
+    `<text x="${width - right}" y="60" fill="${palette.foreground}" font-family="${FONT2}" font-size="30" font-weight="700" letter-spacing="-0.6" text-anchor="end">${groupThousands(last.count)}</text>`,
+    `<text x="${width - right}" y="82" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.5" text-anchor="end">CURRENT STARS</text>`,
+    `<line x1="${left}" y1="101" x2="${width - right}" y2="101" stroke="${palette.grid}" stroke-width="1"/>`
   );
   for (let value = 0; value <= yMaximum; value += yStep) {
     const y = top + plotHeight - value / yMaximum * plotHeight;
@@ -20442,6 +20446,7 @@ function renderSvg(history, options = {}) {
   for (const tick of dateTicks(first.dayNumber, last.dayNumber)) {
     const [x] = coordinates(tick, 0);
     elements.push(
+      `<line x1="${x.toFixed(1)}" y1="${top}" x2="${x.toFixed(1)}" y2="${top + plotHeight}" stroke="${palette.grid}" stroke-width="1" opacity="0.45"/>`,
       `<text x="${x.toFixed(1)}" y="${top + plotHeight + 28}" fill="${palette.muted}" font-family="${FONT2}" font-size="13" text-anchor="middle">${dateLabel(dayFromNumber(tick), longRange)}</text>`
     );
   }
@@ -20451,13 +20456,17 @@ function renderSvg(history, options = {}) {
   }
   if (variant === "glow") {
     elements.push(
-      `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.16" filter="url(#trend-glow)"/>`
+      `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.10" filter="url(#trend-glow)"/>`
     );
   }
   elements.push(
-    `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="${variant === "line" ? 2.5 : 3}" stroke-linecap="round" stroke-linejoin="round"/>`,
-    "</g>"
+    `<path d="${linePath}" fill="none" stroke="url(#trend)" stroke-width="${variant === "line" ? 2.5 : 3}" stroke-linecap="round" stroke-linejoin="round"/>`
   );
+  elements.push(`<g data-point-count="${sampledPoints.length}" fill="${palette.foreground}" opacity="0.68">`);
+  for (const [x, y] of sampledPoints) {
+    elements.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8"/>`);
+  }
+  elements.push("</g>", "</g>");
   elements.push(
     `<g${markerClass}>`,
     `<circle${pulseClass} cx="${lastCoordinates[0].toFixed(1)}" cy="${lastCoordinates[1].toFixed(1)}" r="9" fill="url(#marker-halo)"/>`,
@@ -20466,8 +20475,8 @@ function renderSvg(history, options = {}) {
   );
   const rangeLabel = onePoint ? monthYear(last.day) : `${monthYear(first.day)} \u2013 ${monthYear(last.day)}`;
   elements.push(
-    `<text x="${left}" y="${height - 18}" fill="${palette.muted}" font-family="${FONT2}" font-size="12" font-weight="500">${rangeLabel}</text>`,
-    `<text x="${width - right}" y="${height - 18}" fill="${palette.muted}" font-family="${FONT2}" font-size="12" font-weight="500" text-anchor="end">Updated ${last.day}</text>`,
+    `<text x="${left}" y="${height - 16}" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1">TRACKED \xB7 ${rangeLabel}</text>`,
+    `<text x="${width - right}" y="${height - 16}" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1" text-anchor="end">UPDATED \xB7 ${last.day}</text>`,
     "</svg>"
   );
   return `${elements.join("\n")}

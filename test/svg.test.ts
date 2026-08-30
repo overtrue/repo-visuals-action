@@ -76,6 +76,17 @@ test("smooths the trend line by default and can disable it", () => {
   assert.match(straight, /d="M [\d.]+ [\d.]+ L /);
 });
 
+test("adds a bounded set of editorial observation dots", () => {
+  const points = Array.from({ length: 100 }, (_, index) => [
+    new Date(Date.UTC(2026, 0, index + 1)).toISOString().slice(0, 10),
+    index,
+  ]) as [string, number][];
+  const svg = renderSvg({ ...history, points }, { animate: false });
+
+  assert.match(svg, /data-point-count="31"/);
+  assert.equal((svg.match(/r="1\.8"/g) ?? []).length, 31);
+});
+
 test("applies palette and title overrides", () => {
   const svg = renderSvg(history, {
     style: "classic",

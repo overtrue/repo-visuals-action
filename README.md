@@ -3,16 +3,17 @@
 Generate star history charts and contributor walls without a hosted rendering service. The action reads GitHub's APIs inside your workflow and publishes self-contained light and dark SVG files to a branch in your repository — no third-party image host, no tracking pixels, no external requests at render time.
 
 - **9 built-in themes** × **3 chart variants** (area, line, glow) — mix and match, or override any color.
+- **Editorial chart composition** with clear hierarchy, sparse observation dots, and restrained light/dark surfaces.
 - **Contributor walls** with configurable columns, avatar size, spacing, shape, and leaderboard highlighting.
 - **Deterministic, offline SVG** — avatars are embedded as validated raster bytes; nothing is fetched when the image loads.
 
-All previews below were generated locally from the `rustfs/rustfs` history on 2026-07-18 at ~29,951 stars, and each one automatically switches between its tracked light and dark SVG.
+All previews below were generated locally from the `rustfs/rustfs` history on 2026-08-29 at 31,508 stars, and each one automatically switches between its tracked light and dark SVG.
 
 ## Chart themes
 
 Every theme ships with a tuned light and dark palette. The heading notes each theme's default variant; you can override it with `chart-variant`.
 
-### classic · warm area
+### classic · editorial vermilion area
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/examples/rustfs/classic-dark.svg">
@@ -77,7 +78,7 @@ Every theme ships with a tuned light and dark palette. The heading notes each th
 
 ## Contributor wall
 
-Set `contributors: "true"` to render the top non-bot contributors, ordered by contribution count. Avatars are downloaded during the workflow, validated as raster images, and embedded directly in the SVG. The leaderboard's top three get an accent ring, the header names the leading contributor, and a missing avatar falls back to the contributor's initial. The wall follows the same theme as the chart.
+Set `contributors: "true"` to render the top non-bot contributors, ordered by contribution count. Avatars are downloaded during the workflow, validated as raster images, and embedded directly in the SVG. The leaderboard's top three get an accent ring, and a missing avatar falls back to the contributor's initial. The wall follows the same theme as the chart.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/examples/rustfs/contributors-dark.svg">
@@ -135,7 +136,7 @@ jobs:
           github-token: ${{ github.token }}
           output-branch: star-history
           output-path: .
-          chart-style: gradient
+          chart-style: classic
           animate: "true"
           contributors: "true"
 ```
