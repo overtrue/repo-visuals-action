@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  CHART_LAYOUTS,
   CHART_STYLES,
   CHART_VARIANTS,
   formatCount,
   renderSvg,
+  validateChartLayout,
   validateChartStyle,
   validateChartVariant,
   validateColor,
@@ -32,6 +34,29 @@ test("renders every chart style in accessible light and dark SVG", () => {
     assert.doesNotMatch(light, /<script/i);
     assert.notEqual(light, dark);
   }
+});
+
+test("renders editorial, glance, and compact chart layouts", () => {
+  const expectedViewBoxes = {
+    editorial: "0 0 960 540",
+    glance: "0 0 960 500",
+    compact: "0 0 960 400",
+  } as const;
+
+  for (const layout of CHART_LAYOUTS) {
+    const svg = renderSvg(history, { layout, animate: false });
+    assert.match(svg, new RegExp(`viewBox="${expectedViewBoxes[layout]}"`));
+    assert.match(svg, new RegExp(`data-layout="${layout}"`));
+  }
+
+  const editorial = renderSvg(history, { layout: "editorial", animate: false });
+  const glance = renderSvg(history, { layout: "glance", animate: false });
+  const compact = renderSvg(history, { layout: "compact", animate: false });
+  assert.match(editorial, /TRACKED ·/);
+  assert.match(glance, /font-size="64"/);
+  assert.doesNotMatch(glance, /TRACKED ·/);
+  assert.doesNotMatch(compact, /REPOSITORY SIGNAL/);
+  assert.doesNotMatch(compact, /TRACKED ·/);
 });
 
 test("keeps variant differences explicit", () => {
@@ -109,7 +134,10 @@ test("places a one-point history at the current edge", () => {
   assert.match(svg, /cx="920\.0"/);
 });
 
-test("validates chart styles, variants, and colors", () => {
+test("validates chart layouts, styles, variants, and colors", () => {
+  assert.deepEqual([...CHART_LAYOUTS], ["editorial", "glance", "compact"]);
+  assert.equal(validateChartLayout("glance"), "glance");
+  assert.throws(() => validateChartLayout("poster"), /editorial, glance, compact/);
   assert.equal(validateChartStyle("gradient"), "gradient");
   assert.throws(() => validateChartStyle("neon"), /classic, minimal, gradient/);
   assert.deepEqual([...CHART_VARIANTS], ["area", "line", "glow"]);

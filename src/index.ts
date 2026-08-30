@@ -15,7 +15,7 @@ import { validateRepository } from "./history.ts";
 import { validateBranch, validateOutputPath } from "./paths.ts";
 import { runAction } from "./run.ts";
 import type { PaletteOverrides } from "./theme.ts";
-import { validateChartStyle, validateChartVariant, validateColor } from "./svg.ts";
+import { validateChartLayout, validateChartStyle, validateChartVariant, validateColor } from "./svg.ts";
 
 function optionalText(value: string, label: string): string | undefined {
   const text = value.trim();
@@ -45,6 +45,7 @@ async function main(): Promise<void> {
     const chartStyle = validateChartStyle(core.getInput("chart-style") || "classic");
     const chartVariantInput = core.getInput("chart-variant");
     const chartVariant = chartVariantInput ? validateChartVariant(chartVariantInput) : undefined;
+    const chartLayout = validateChartLayout(core.getInput("chart-layout") || "editorial");
     const chartTitle = optionalText(core.getInput("chart-title"), "chart-title");
     const contributorsTitle = optionalText(core.getInput("contributors-title"), "contributors-title");
     const smooth = core.getBooleanInput("smooth");
@@ -111,6 +112,7 @@ async function main(): Promise<void> {
         contributorsLimit,
         chartStyle,
         chartVariant,
+        chartLayout,
         chartTitle,
         contributorsTitle,
         smooth,

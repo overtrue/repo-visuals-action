@@ -38,6 +38,13 @@ for (const style of CHART_STYLES) {
   emit(`${style}-dark.svg`, renderSvg(history, { dark: true, style }));
 }
 
+// Alternative compositions use the classic palette so layout is the only variable.
+console.log("chart layouts:");
+for (const layout of ["glance", "compact"] as const) {
+  emit(`layout-${layout}-light.svg`, renderSvg(history, { layout, style: "classic" }));
+  emit(`layout-${layout}-dark.svg`, renderSvg(history, { dark: true, layout, style: "classic" }));
+}
+
 // Contributor walls: the primary gradient wall plus a themed/shape showcase.
 console.log("contributor walls:");
 emit("contributors-light.svg", renderContributorsSvg(contributors, repository, { style: "gradient" }));
@@ -55,4 +62,4 @@ for (const { style, shape } of walls) {
   emit(`contributors-${style}-dark.svg`, renderContributorsSvg(showcase, repository, { dark: true, style, layout }));
 }
 
-console.log(`\ntotal: ${(bytes / 1024 / 1024).toFixed(2)}MB across ${CHART_STYLES.length * 2 + 8} files`);
+console.log(`\ntotal: ${(bytes / 1024 / 1024).toFixed(2)}MB across ${CHART_STYLES.length * 2 + 12} files`);

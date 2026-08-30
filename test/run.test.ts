@@ -76,6 +76,7 @@ const inputs = (overrides: Partial<ActionInputs> = {}): ActionInputs => ({
   contributors: true,
   contributorsLimit: 150,
   chartStyle: "gradient",
+  chartLayout: "glance",
   smooth: true,
   overrides: {},
   contributorLayout: {},
@@ -103,6 +104,7 @@ test("bootstraps and publishes all artifacts below output-path", async () => {
   const stored = JSON.parse(client.artifacts[0]?.content ?? "") as { points: [string, number][] };
   assert.deepEqual(stored.points.at(-1), ["2026-07-18", 29_944]);
   assert.match(client.artifacts[1]?.content ?? "", /data-style="gradient"/);
+  assert.match(client.artifacts[1]?.content ?? "", /data-layout="glance"/);
   assert.match(client.artifacts[1]?.content ?? "", /prefers-reduced-motion/);
   assert.match(client.artifacts[3]?.content ?? "", /overtrue, 1516 contributions/);
   assert.match(result.lightUrl, /assets\/stars\/star-history-light\.svg$/);

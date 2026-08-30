@@ -37,13 +37,14 @@ The SVG uses a self-contained system sans-serif stack. It never downloads fonts 
 
 ## 4. Spacing & Layout
 
-The base unit is 4px. Star charts use a fixed `960 × 540` viewBox with a 122px editorial header band. Contributor walls use an 82px header above a dynamic grid whose width follows the configured column count, avatar size, gap, and outer padding (defaults: 16 columns, 48px avatars, 8px gap, 32px padding). Both scale responsively without layout-dependent JavaScript, and every card carries a 1px hairline border so it reads as a distinct surface against any README background.
+The base unit is 4px. Star charts share a 960px-wide canvas and offer three compositions: `editorial` (`960 × 540`) balances context and detail, `glance` (`960 × 500`) makes the current count dominant and removes y-axis labels, and `compact` (`960 × 400`) reduces header, tick, and footer density for tighter README placement. Layout is independent from theme and chart variant. Contributor walls use an 82px header above a dynamic grid whose width follows the configured column count, avatar size, gap, and outer padding (defaults: 16 columns, 48px avatars, 8px gap, 32px padding). Both scale responsively without layout-dependent JavaScript, and every card carries a 1px hairline border so it reads as a distinct surface against any README background.
 
 ## 5. Components
 
 ### Star History Chart
 
 - **Structure**: accessible SVG title and description, bordered surface, editorial eyebrow, sparkle data glyph, title, repository, right-aligned current total, hairline divider, mixed grid, trend group, haloed endpoint marker, and utility footer.
+- **Layouts**: `editorial` keeps the full information hierarchy, `glance` prioritizes the current count for quick scanning, and `compact` shortens the canvas while retaining readable axes. `chart-layout` selects the composition.
 - **Observation rhythm**: long histories sample at most 31 intermediate dots while preserving the complete line path. The dots make the source records legible without turning a daily history into noise.
 - **Variants**: `area` (filled), `line` (stroke only), and `glow` (area plus a soft static bloom). Each theme selects a default variant, and `chart-variant` overrides it independently of the palette.
 - **Line shape**: `smooth` (default) draws a Fritsch–Carlson monotone cubic spline that never overshoots the data, so a cumulative star line stays monotonic; disabling it falls back to straight segments.
