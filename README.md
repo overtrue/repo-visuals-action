@@ -4,7 +4,7 @@ Generate star history charts and contributor walls without a hosted rendering se
 
 - **9 built-in themes** × **3 chart variants** (area, line, glow) — mix and match, or override any color.
 - **Editorial chart composition** with clear hierarchy, sparse observation dots, and restrained light/dark surfaces.
-- **Contributor walls** with configurable columns, avatar size, spacing, shape, and ranked leaderboard highlighting.
+- **Contributor walls** with configurable columns, avatar size, spacing, shape, and leaderboard highlighting.
 - **Deterministic, offline SVG** — avatars are embedded as validated raster bytes; nothing is fetched when the image loads.
 
 All previews below were generated locally from the `rustfs/rustfs` history on 2026-08-29 at 31,508 stars, and each one automatically switches between its tracked light and dark SVG.
@@ -78,7 +78,7 @@ Every theme ships with a tuned light and dark palette. The heading notes each th
 
 ## Contributor wall
 
-Set `contributors: "true"` to render the top non-bot contributors, ordered by contribution count. Avatars are downloaded during the workflow, validated as raster images, and embedded directly in the SVG. The leaderboard's top three get an accent ring and rank badge, the header names the leading contributor, and a missing avatar falls back to the contributor's initial. The wall follows the same theme as the chart.
+Set `contributors: "true"` to render the top non-bot contributors, ordered by contribution count. Avatars are downloaded during the workflow, validated as raster images, and embedded directly in the SVG. The leaderboard's top three get an accent ring, and a missing avatar falls back to the contributor's initial. The wall follows the same theme as the chart.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/examples/rustfs/contributors-dark.svg">

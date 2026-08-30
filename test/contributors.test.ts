@@ -99,11 +99,9 @@ test("keeps the editorial header visible at minimum padding", () => {
 test("highlights the leading contributors", () => {
   const svg = renderContributorsSvg(contributors, "rustfs/rustfs", { animate: false });
 
-  assert.match(svg, /Led by overtrue/);
   assert.match(svg, /#1 overtrue, 1516 contributions/);
   assert.match(svg, /stroke="url\(#wall-accent\)" stroke-width="2"/);
-  assert.match(svg, />1<\/text>/);
-  assert.match(svg, />2<\/text>/);
+  assert.doesNotMatch(svg, /Led by/);
 });
 
 test("validates contributor limits and layout inputs", () => {

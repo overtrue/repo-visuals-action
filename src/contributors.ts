@@ -161,7 +161,6 @@ export function renderContributorsSvg(
   );
 
   // Editorial header: a data glyph and a single hairline establish hierarchy.
-  const leadLabel = contributors.length > 0 && contributors[0] ? `Led by ${escapeXml(contributors[0].login)}` : "";
   elements.push(
     `<text x="${padding}" y="${padding - 8 + headerOffset}" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY PEOPLE · CONTRIBUTIONS</text>`,
     `<g transform="translate(${padding} ${padding + 4 + headerOffset})" fill="url(#wall-accent)" aria-hidden="true"><circle cx="5" cy="5" r="3.5"/><circle cx="17" cy="5" r="3.5"/><circle cx="11" cy="15" r="3.5"/></g>`,
@@ -170,11 +169,6 @@ export function renderContributorsSvg(
     `<text x="${width - padding}" y="${padding + 23 + headerOffset}" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700" letter-spacing="-0.4" text-anchor="end">${countLabel}</text>`,
     `<line x1="${padding}" y1="${padding + 61 + headerOffset}" x2="${width - padding}" y2="${padding + 61 + headerOffset}" stroke="${palette.grid}" stroke-width="1"/>`,
   );
-  if (leadLabel) {
-    elements.push(
-      `<text x="${width - padding}" y="${padding + 45 + headerOffset}" fill="${palette.muted}" font-family="${FONT}" font-size="13" text-anchor="end">${leadLabel}</text>`,
-    );
-  }
   elements.push(`<g${wallClass}>`);
 
   if (contributors.length === 0) {
@@ -184,7 +178,6 @@ export function renderContributorsSvg(
   } else {
     const center = avatarSize / 2;
     const fontSize = Math.max(11, Math.round(avatarSize * 0.34));
-    const badgeRadius = Math.min(9, Math.max(7, Math.round(avatarSize * 0.16)));
     for (const [index, contributor] of contributors.entries()) {
       const column = index % columns;
       const row = Math.floor(index / columns);
@@ -211,8 +204,6 @@ export function renderContributorsSvg(
       if (topThree) {
         elements.push(
           `<rect x="0.75" y="0.75" width="${avatarSize - 1.5}" height="${avatarSize - 1.5}" rx="${Math.max(0, radius - 0.75)}" fill="none" stroke="url(#wall-accent)" stroke-width="2"/>`,
-          `<circle cx="${avatarSize - badgeRadius}" cy="${avatarSize - badgeRadius}" r="${badgeRadius}" fill="${palette.background}" stroke="${palette.end}" stroke-width="1.5"/>`,
-          `<text x="${avatarSize - badgeRadius}" y="${avatarSize - badgeRadius + 3.5}" fill="${palette.foreground}" font-family="${FONT}" font-size="10" font-weight="700" text-anchor="middle">${index + 1}</text>`,
         );
       } else {
         elements.push(

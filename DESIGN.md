@@ -53,9 +53,9 @@ The base unit is 4px. Star charts use a fixed `960 × 540` viewBox with a 122px 
 
 ### Contributor Wall
 
-- **Structure**: accessible SVG title and description, bordered surface, three-dot data glyph, repository label, right-aligned contributor count with a "led by" line, hairline divider, and a dense avatar grid.
+- **Structure**: accessible SVG title and description, bordered surface, three-dot data glyph, repository label, right-aligned contributor count, hairline divider, and a dense avatar grid.
 - **Layout**: column count, avatar size, gap, outer padding, and avatar shape (`circle`, `squircle`, `square`) are all configurable; the viewBox is computed from them.
-- **Leaderboard**: contributors are ordered by contribution count, the top three carry an accent ring plus a visible numeric badge, and each avatar exposes its rank and count through a per-avatar `<title>`.
+- **Leaderboard**: contributors are ordered by contribution count, the top three carry an accent ring, and each avatar exposes its rank and count through a per-avatar `<title>`.
 - **Theme**: the same nine themes and color overrides as the chart, each with light and dark output.
 - **States**: populated wall, empty repository, missing avatar fallback, static motion-disabled, animated reveal.
 - **Privacy and reliability**: GitHub avatars are resized before generation and embedded as validated raster data URLs; rendered SVG files make no external requests. Only `data:` image URLs matching a raster allowlist are emitted.
