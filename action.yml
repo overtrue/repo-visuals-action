@@ -29,6 +29,10 @@ inputs:
     description: Chart shape override (area, line, or glow); defaults to the theme's own variant
     required: false
     default: ""
+  chart-layout:
+    description: Chart composition (editorial, glance, or compact)
+    required: false
+    default: editorial
   chart-title:
     description: Custom heading for the star chart (defaults to "Star History")
     required: false

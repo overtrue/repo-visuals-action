@@ -20235,6 +20235,13 @@ function rawUrl(serverUrl, repository, branch, path) {
 // src/svg.ts
 var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 var FONT2 = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+var CHART_LAYOUTS = ["editorial", "glance", "compact"];
+function validateChartLayout(value) {
+  if (CHART_LAYOUTS.includes(value)) {
+    return value;
+  }
+  throw new Error(`chart-layout must be one of: ${CHART_LAYOUTS.join(", ")}`);
+}
 function formatCount(value) {
   if (value >= 1e6) {
     return `${Number((value / 1e6).toFixed(1))}M`;
@@ -20250,11 +20257,11 @@ function groupThousands(value) {
 function escapeXml2(value) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
 }
-function axisScale(maximum) {
+function axisScale(maximum, divisions = 5) {
   if (maximum <= 0) {
     return [1, 1];
   }
-  const roughStep = maximum / 5;
+  const roughStep = maximum / divisions;
   const magnitude = 10 ** Math.floor(Math.log10(roughStep));
   const normalized = roughStep / magnitude;
   const stepFactor = [1, 2, 5, 10].find((value) => normalized <= value) ?? 10;
@@ -20377,6 +20384,7 @@ function renderSvg(history, options = {}) {
   const dark = options.dark ?? false;
   const style = options.style ?? "classic";
   const variant = options.variant ?? themeFor(style).variant;
+  const layout = options.layout ?? "editorial";
   const animate = options.animate ?? true;
   const smooth = options.smooth ?? true;
   const palette = resolvePalette(style, dark, options.overrides);
@@ -20390,13 +20398,50 @@ function renderSvg(history, options = {}) {
   const domainLast = Math.max(last.dayNumber, first.dayNumber + 1);
   const dateSpan = domainLast - first.dayNumber;
   const maximum = Math.max(...parsed.map(({ count }) => count));
-  const [yMaximum, yStep] = axisScale(maximum);
   const width = 960;
-  const height = 540;
-  const left = 76;
-  const right = 40;
-  const top = 122;
-  const bottom = 62;
+  const metrics = {
+    editorial: {
+      height: 540,
+      left: 76,
+      right: 40,
+      top: 122,
+      bottom: 62,
+      cardRadius: 18,
+      dateTicks: 6,
+      dateFontSize: 13,
+      pointLimit: 32,
+      yDivisions: 5,
+      showAxisLabels: true
+    },
+    glance: {
+      height: 500,
+      left: 64,
+      right: 40,
+      top: 190,
+      bottom: 58,
+      cardRadius: 18,
+      dateTicks: 4,
+      dateFontSize: 12,
+      pointLimit: 20,
+      yDivisions: 4,
+      showAxisLabels: false
+    },
+    compact: {
+      height: 400,
+      left: 64,
+      right: 32,
+      top: 86,
+      bottom: 48,
+      cardRadius: 14,
+      dateTicks: 5,
+      dateFontSize: 11,
+      pointLimit: 22,
+      yDivisions: 4,
+      showAxisLabels: true
+    }
+  }[layout];
+  const { height, left, right, top, bottom, cardRadius } = metrics;
+  const [yMaximum, yStep] = axisScale(maximum, metrics.yDivisions);
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
   const onePoint = first.dayNumber === last.dayNumber;
@@ -20410,14 +20455,13 @@ function renderSvg(history, options = {}) {
   const lastCoordinates = points.at(-1);
   const baseline = (top + plotHeight).toFixed(1);
   const areaPath = `${linePath} L ${lastCoordinates[0].toFixed(1)} ${baseline} L ${firstCoordinates[0].toFixed(1)} ${baseline} Z`;
-  const sampledPoints = sampleTrendPoints(points);
+  const sampledPoints = sampleTrendPoints(points, metrics.pointLimit);
   const trendClass = animate ? ' class="trend-enter"' : "";
   const markerClass = animate ? ' class="marker-enter"' : "";
   const pulseClass = animate ? ' class="marker-pulse"' : "";
-  const cardRadius = 18;
   const elements = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-variant="${variant}" data-animated="${animate}">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description" data-style="${style}" data-variant="${variant}" data-layout="${layout}" data-animated="${animate}">`,
     `<title id="title">${escapeXml2(history.repository)} ${escapeXml2(title)}</title>`,
     `<desc id="description">${formatCount(last.count)} stars as of ${last.day}. Daily cumulative star trend.</desc>`,
     ...definitions(palette, variant, animate),
@@ -20426,28 +20470,54 @@ function renderSvg(history, options = {}) {
   if (variant === "glow") {
     elements.push(`<rect width="${width}" height="${height}" fill="url(#surface-glow)" rx="${cardRadius}"/>`);
   }
-  elements.push(
-    `<text x="${left}" y="28" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY SIGNAL \xB7 STARS</text>`,
-    `<path d="M12 1c.8 7.1 2.9 9.2 10 10-7.1.8-9.2 2.9-10 10-.8-7.1-2.9-9.2-10-10 7.1-.8 9.2-2.9 10-10Z" transform="translate(${left} 42) scale(.78)" fill="url(#trend)" aria-hidden="true"/>`,
-    `<text x="${left + 30}" y="62" fill="${palette.foreground}" font-family="${FONT2}" font-size="25" font-weight="700" letter-spacing="-0.5">${escapeXml2(title)}</text>`,
-    `<text x="${left + 30}" y="84" fill="${palette.muted}" font-family="${FONT2}" font-size="13">${escapeXml2(history.repository)}</text>`,
-    `<text x="${width - right}" y="60" fill="${palette.foreground}" font-family="${FONT2}" font-size="30" font-weight="700" letter-spacing="-0.6" text-anchor="end">${groupThousands(last.count)}</text>`,
-    `<text x="${width - right}" y="82" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.5" text-anchor="end">CURRENT STARS</text>`,
-    `<line x1="${left}" y1="101" x2="${width - right}" y2="101" stroke="${palette.grid}" stroke-width="1"/>`
-  );
+  if (layout === "editorial") {
+    elements.push(
+      `<text x="${left}" y="28" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY SIGNAL \xB7 STARS</text>`,
+      `<path d="M12 1c.8 7.1 2.9 9.2 10 10-7.1.8-9.2 2.9-10 10-.8-7.1-2.9-9.2-10-10 7.1-.8 9.2-2.9 10-10Z" transform="translate(${left} 42) scale(.78)" fill="url(#trend)" aria-hidden="true"/>`,
+      `<text x="${left + 30}" y="62" fill="${palette.foreground}" font-family="${FONT2}" font-size="25" font-weight="700" letter-spacing="-0.5">${escapeXml2(title)}</text>`,
+      `<text x="${left + 30}" y="84" fill="${palette.muted}" font-family="${FONT2}" font-size="13">${escapeXml2(history.repository)}</text>`,
+      `<text x="${width - right}" y="60" fill="${palette.foreground}" font-family="${FONT2}" font-size="30" font-weight="700" letter-spacing="-0.6" text-anchor="end">${groupThousands(last.count)}</text>`,
+      `<text x="${width - right}" y="82" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.5" text-anchor="end">CURRENT STARS</text>`,
+      `<line x1="${left}" y1="101" x2="${width - right}" y2="101" stroke="${palette.grid}" stroke-width="1"/>`
+    );
+  } else if (layout === "glance") {
+    elements.push(
+      `<text x="${left}" y="28" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.5">REPOSITORY SIGNAL \xB7 ${escapeXml2(history.repository)}</text>`,
+      `<path d="M12 1c.8 7.1 2.9 9.2 10 10-7.1.8-9.2 2.9-10 10-.8-7.1-2.9-9.2-10-10 7.1-.8 9.2-2.9 10-10Z" transform="translate(${left} 43) scale(.62)" fill="url(#trend)" aria-hidden="true"/>`,
+      `<text x="${left + 25}" y="60" fill="${palette.foreground}" font-family="${FONT2}" font-size="21" font-weight="700" letter-spacing="-0.3">${escapeXml2(title)}</text>`,
+      `<text x="${left}" y="142" fill="${palette.foreground}" font-family="${FONT2}" font-size="64" font-weight="750" letter-spacing="-2.4">${groupThousands(last.count)}</text>`,
+      `<text x="${left}" y="165" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.7">CURRENT STARS</text>`,
+      `<text x="${width - right}" y="142" fill="${palette.foreground}" font-family="${FONT2}" font-size="15" font-weight="600" text-anchor="end">${last.day}</text>`,
+      `<text x="${width - right}" y="165" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1.5" text-anchor="end">UPDATED</text>`,
+      `<line x1="${left}" y1="177" x2="${width - right}" y2="177" stroke="${palette.grid}" stroke-width="1"/>`
+    );
+  } else {
+    elements.push(
+      `<text x="${left}" y="22" fill="${palette.muted}" font-family="${FONT2}" font-size="9" font-weight="600" letter-spacing="1.3">${escapeXml2(history.repository)}</text>`,
+      `<path d="M12 1c.8 7.1 2.9 9.2 10 10-7.1.8-9.2 2.9-10 10-.8-7.1-2.9-9.2-10-10 7.1-.8 9.2-2.9 10-10Z" transform="translate(${left} 35) scale(.58)" fill="url(#trend)" aria-hidden="true"/>`,
+      `<text x="${left + 24}" y="51" fill="${palette.foreground}" font-family="${FONT2}" font-size="20" font-weight="700" letter-spacing="-0.3">${escapeXml2(title)}</text>`,
+      `<text x="${width - right}" y="48" fill="${palette.foreground}" font-family="${FONT2}" font-size="25" font-weight="700" letter-spacing="-0.5" text-anchor="end">${groupThousands(last.count)}</text>`,
+      `<text x="${width - right}" y="66" fill="${palette.muted}" font-family="${FONT2}" font-size="9" font-weight="600" letter-spacing="1.3" text-anchor="end">CURRENT STARS</text>`,
+      `<line x1="${left}" y1="72" x2="${width - right}" y2="72" stroke="${palette.grid}" stroke-width="1"/>`
+    );
+  }
   for (let value = 0; value <= yMaximum; value += yStep) {
     const y = top + plotHeight - value / yMaximum * plotHeight;
     elements.push(
-      `<line x1="${left}" y1="${y.toFixed(1)}" x2="${width - right}" y2="${y.toFixed(1)}" stroke="${palette.grid}" stroke-width="1" stroke-dasharray="${value === 0 ? "0" : "4 6"}" opacity="${value === 0 ? "1" : "0.7"}"/>`,
-      `<text x="${left - 12}" y="${(y + 4).toFixed(1)}" fill="${palette.muted}" font-family="${FONT2}" font-size="13" text-anchor="end">${formatCount(value)}</text>`
+      `<line x1="${left}" y1="${y.toFixed(1)}" x2="${width - right}" y2="${y.toFixed(1)}" stroke="${palette.grid}" stroke-width="1" stroke-dasharray="${value === 0 ? "0" : "4 6"}" opacity="${value === 0 ? "1" : "0.7"}"/>`
     );
+    if (metrics.showAxisLabels) {
+      elements.push(
+        `<text x="${left - 12}" y="${(y + 4).toFixed(1)}" fill="${palette.muted}" font-family="${FONT2}" font-size="${layout === "compact" ? 11 : 13}" text-anchor="end">${formatCount(value)}</text>`
+      );
+    }
   }
   const longRange = last.dayNumber - first.dayNumber > 90;
-  for (const tick of dateTicks(first.dayNumber, last.dayNumber)) {
+  for (const tick of dateTicks(first.dayNumber, last.dayNumber, metrics.dateTicks)) {
     const [x] = coordinates(tick, 0);
     elements.push(
       `<line x1="${x.toFixed(1)}" y1="${top}" x2="${x.toFixed(1)}" y2="${top + plotHeight}" stroke="${palette.grid}" stroke-width="1" opacity="0.45"/>`,
-      `<text x="${x.toFixed(1)}" y="${top + plotHeight + 28}" fill="${palette.muted}" font-family="${FONT2}" font-size="13" text-anchor="middle">${dateLabel(dayFromNumber(tick), longRange)}</text>`
+      `<text x="${x.toFixed(1)}" y="${top + plotHeight + 28}" fill="${palette.muted}" font-family="${FONT2}" font-size="${metrics.dateFontSize}" text-anchor="middle">${dateLabel(dayFromNumber(tick), longRange)}</text>`
     );
   }
   elements.push(`<g${trendClass}>`);
@@ -20473,12 +20543,14 @@ function renderSvg(history, options = {}) {
     `<circle cx="${lastCoordinates[0].toFixed(1)}" cy="${lastCoordinates[1].toFixed(1)}" r="4.5" fill="${palette.end}" stroke="${palette.background}" stroke-width="2"/>`,
     "</g>"
   );
-  const rangeLabel = onePoint ? monthYear(last.day) : `${monthYear(first.day)} \u2013 ${monthYear(last.day)}`;
-  elements.push(
-    `<text x="${left}" y="${height - 16}" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1">TRACKED \xB7 ${rangeLabel}</text>`,
-    `<text x="${width - right}" y="${height - 16}" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1" text-anchor="end">UPDATED \xB7 ${last.day}</text>`,
-    "</svg>"
-  );
+  if (layout === "editorial") {
+    const rangeLabel = onePoint ? monthYear(last.day) : `${monthYear(first.day)} \u2013 ${monthYear(last.day)}`;
+    elements.push(
+      `<text x="${left}" y="${height - 16}" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1">TRACKED \xB7 ${rangeLabel}</text>`,
+      `<text x="${width - right}" y="${height - 16}" fill="${palette.muted}" font-family="${FONT2}" font-size="10" font-weight="600" letter-spacing="1" text-anchor="end">UPDATED \xB7 ${last.day}</text>`
+    );
+  }
+  elements.push("</svg>");
   return `${elements.join("\n")}
 `;
 }
@@ -20525,6 +20597,7 @@ async function runAction(client, inputs, stargazerClient) {
   const chartOptions = {
     style: inputs.chartStyle,
     variant: inputs.chartVariant,
+    layout: inputs.chartLayout,
     animate: inputs.animate,
     smooth: inputs.smooth,
     title: inputs.chartTitle,
@@ -20602,6 +20675,7 @@ async function main() {
     const chartStyle = validateChartStyle(getInput("chart-style") || "classic");
     const chartVariantInput = getInput("chart-variant");
     const chartVariant = chartVariantInput ? validateChartVariant(chartVariantInput) : void 0;
+    const chartLayout = validateChartLayout(getInput("chart-layout") || "editorial");
     const chartTitle = optionalText(getInput("chart-title"), "chart-title");
     const contributorsTitle = optionalText(getInput("contributors-title"), "contributors-title");
     const smooth = getBooleanInput("smooth");
@@ -20664,6 +20738,7 @@ async function main() {
         contributorsLimit,
         chartStyle,
         chartVariant,
+        chartLayout,
         chartTitle,
         contributorsTitle,
         smooth,

@@ -3,11 +3,36 @@
 Generate star history charts and contributor walls without a hosted rendering service. The action reads GitHub's APIs inside your workflow and publishes self-contained light and dark SVG files to a branch in your repository — no third-party image host, no tracking pixels, no external requests at render time.
 
 - **9 built-in themes** × **3 chart variants** (area, line, glow) — mix and match, or override any color.
-- **Editorial chart composition** with clear hierarchy, sparse observation dots, and restrained light/dark surfaces.
+- **3 chart layouts** — editorial, glance, and compact — independent from theme and chart variant.
 - **Contributor walls** with configurable columns, avatar size, spacing, shape, and leaderboard highlighting.
 - **Deterministic, offline SVG** — avatars are embedded as validated raster bytes; nothing is fetched when the image loads.
 
 All previews below were generated locally from the `rustfs/rustfs` history on 2026-08-29 at 31,508 stars, and each one automatically switches between its tracked light and dark SVG.
+
+## Chart layouts
+
+Choose the information hierarchy with `chart-layout`; theme colors and `chart-variant` remain independent.
+
+### editorial · balanced detail (default)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/examples/rustfs/classic-dark.svg">
+  <img src="assets/examples/rustfs/classic-light.svg" alt="Editorial star history layout">
+</picture>
+
+### glance · current count first
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/examples/rustfs/layout-glance-dark.svg">
+  <img src="assets/examples/rustfs/layout-glance-light.svg" alt="Glance star history layout">
+</picture>
+
+### compact · shorter README card
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/examples/rustfs/layout-compact-dark.svg">
+  <img src="assets/examples/rustfs/layout-compact-light.svg" alt="Compact star history layout">
+</picture>
 
 ## Chart themes
 
@@ -137,6 +162,7 @@ jobs:
           output-branch: star-history
           output-path: .
           chart-style: classic
+          chart-layout: editorial
           animate: "true"
           contributors: "true"
 ```
@@ -154,6 +180,7 @@ Every visual knob is an action input, so you can restyle without touching code.
           # Theme and shape
           chart-style: midnight        # 9 themes
           chart-variant: line          # area | line | glow (override the theme default)
+          chart-layout: glance         # editorial | glance | compact
           chart-title: "GitHub Stars"  # custom heading
           smooth: "true"               # smooth monotone curve
           # Color overrides (hex) — tune any theme to your brand
@@ -223,6 +250,7 @@ The user token is used only when `history.json` does not exist. Scheduled update
 | `output-path` | `.` | Directory inside the output branch. |
 | `chart-style` | `classic` | Theme: `classic`, `minimal`, `gradient`, `midnight`, `sunset`, `ocean`, `forest`, `flame`, `mono`. |
 | `chart-variant` | theme default | Shape override: `area`, `line`, or `glow`. |
+| `chart-layout` | `editorial` | Composition: `editorial`, `glance`, or `compact`. |
 | `chart-title` | `Star History` | Custom heading text for the star chart. |
 | `smooth` | `true` | Draw a smooth monotone curve instead of straight segments. |
 | `background-color` | theme | Hex override for the light-mode surface. |
@@ -259,7 +287,7 @@ Replace hosted third-party star history and contributor-wall images in this repo
 1. Inspect the existing README and GitHub workflows before changing anything.
 2. Create `.github/workflows/star-history.yml` with a daily schedule and `workflow_dispatch`, `contents: write`, and a non-cancelling `star-history` concurrency group.
 3. Resolve the latest stable `v1` release of `overtrue/repo-visuals-action` and pin `uses:` to its full commit SHA, with the release version in a comment. Do not use a floating tag in the committed workflow.
-4. Configure `github-token: ${{ github.token }}`, `output-branch: star-history`, an explicit repository-relative `output-path`, `chart-style: gradient`, `animate: "true"`, and `contributors: "true"`. Do not add `actions/checkout`; the action does not need it.
+4. Configure `github-token: ${{ github.token }}`, `output-branch: star-history`, an explicit repository-relative `output-path`, `chart-style: gradient`, `chart-layout: editorial`, `animate: "true"`, and `contributors: "true"`. Do not add `actions/checkout`; the action does not need it.
 5. Replace the star history image with a `<picture>` element using `star-history-dark.svg` and `star-history-light.svg`. Replace the contributor wall with another `<picture>` using `contributors-dark.svg` and `contributors-light.svg`. Include `output-path` in every URL when it is not `.` and use the repository's actual owner and name.
 6. Use only `GITHUB_TOKEN` for normal updates. Do not create, print, or commit a personal token. Add `stargazers-token`, `bootstrap: "true"`, and a repository secret only if I explicitly request historical bootstrap.
 7. Validate the workflow, show the final file paths and raw image URLs, and, if repository permissions allow it, dispatch the workflow once and verify all generated SVG URLs return HTTP 200.

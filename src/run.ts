@@ -9,7 +9,7 @@ import {
 import type { Artifact, StarHistoryClient } from "./github.ts";
 import { outputFile, rawUrl } from "./paths.ts";
 import { renderContributorsSvg, type ContributorLayout } from "./contributors.ts";
-import { renderSvg } from "./svg.ts";
+import { renderSvg, type ChartLayout } from "./svg.ts";
 import type { ChartStyle, ChartVariant, PaletteOverrides } from "./theme.ts";
 
 export interface ActionInputs {
@@ -23,6 +23,7 @@ export interface ActionInputs {
   contributorsLimit: number;
   chartStyle: ChartStyle;
   chartVariant?: ChartVariant;
+  chartLayout: ChartLayout;
   chartTitle?: string;
   contributorsTitle?: string;
   smooth: boolean;
@@ -104,6 +105,7 @@ export async function runAction(
   const chartOptions = {
     style: inputs.chartStyle,
     variant: inputs.chartVariant,
+    layout: inputs.chartLayout,
     animate: inputs.animate,
     smooth: inputs.smooth,
     title: inputs.chartTitle,
