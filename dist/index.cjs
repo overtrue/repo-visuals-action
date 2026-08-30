@@ -19655,10 +19655,9 @@ function renderContributorsSvg(contributors, repository, options = {}) {
     `<rect width="${width}" height="${Math.round(height / 2)}" fill="url(#wall-surface-glow)" rx="${cardRadius}"/>`
   );
   elements.push(
-    `<text x="${padding}" y="${padding - 8 + headerOffset}" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY PEOPLE \xB7 CONTRIBUTIONS</text>`,
+    `<text x="${padding}" y="${padding - 8 + headerOffset}" fill="${palette.muted}" font-family="${FONT}" font-size="10" font-weight="600" letter-spacing="1.7">REPOSITORY PEOPLE \xB7 ${escapeXml(repository)}</text>`,
     `<g transform="translate(${padding} ${padding + 4 + headerOffset})" fill="url(#wall-accent)" aria-hidden="true"><circle cx="5" cy="5" r="3.5"/><circle cx="17" cy="5" r="3.5"/><circle cx="11" cy="15" r="3.5"/></g>`,
     `<text x="${padding + 30}" y="${padding + 25 + headerOffset}" fill="${palette.foreground}" font-family="${FONT}" font-size="24" font-weight="700" letter-spacing="-0.4">${escapeXml(title)}</text>`,
-    `<text x="${padding + 30}" y="${padding + 47 + headerOffset}" fill="${palette.muted}" font-family="${FONT}" font-size="13">${escapeXml(repository)}</text>`,
     `<text x="${width - padding}" y="${padding + 23 + headerOffset}" fill="${palette.foreground}" font-family="${FONT}" font-size="22" font-weight="700" letter-spacing="-0.4" text-anchor="end">${countLabel}</text>`,
     `<line x1="${padding}" y1="${padding + 61 + headerOffset}" x2="${width - padding}" y2="${padding + 61 + headerOffset}" stroke="${palette.grid}" stroke-width="1"/>`
   );

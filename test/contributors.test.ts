@@ -93,7 +93,7 @@ test("keeps the editorial header visible at minimum padding", () => {
     layout: { padding: 8 },
   });
 
-  assert.match(svg, /<text x="8" y="14"[^>]*>REPOSITORY PEOPLE/);
+  assert.match(svg, /<text x="8" y="14"[^>]*>REPOSITORY PEOPLE · rustfs\/rustfs<\/text>/);
 });
 
 test("highlights the leading contributors", () => {
