@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title description" data-style="gradient" data-variant="glow" data-layout="editorial" data-animated="true">
 <title id="title">overtrue/repo-visuals-action Star History</title>
-<desc id="description">4 stars as of 2026-09-14. Daily cumulative star trend.</desc>
+<desc id="description">4 stars as of 2026-09-15. Daily cumulative star trend.</desc>
 <defs>
 <linearGradient id="trend" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#059669"/><stop offset="100%" stop-color="#0284c7"/></linearGradient>
 <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#059669" stop-opacity="0.22"/><stop offset="55%" stop-color="#0284c7" stop-opacity="0.06"/><stop offset="100%" stop-color="#0284c7" stop-opacity="0"/></linearGradient>
@@ -40,49 +40,50 @@
 <text x="64" y="126.0" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="end">4</text>
 <line x1="76.0" y1="122" x2="76.0" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
 <text x="76.0" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Jul 18</text>
-<line x1="250.6" y1="122" x2="250.6" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
-<text x="250.6" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Jul 30</text>
-<line x1="410.7" y1="122" x2="410.7" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
-<text x="410.7" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Aug 10</text>
-<line x1="585.3" y1="122" x2="585.3" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
-<text x="585.3" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Aug 22</text>
-<line x1="745.4" y1="122" x2="745.4" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
-<text x="745.4" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Sep 02</text>
+<line x1="247.7" y1="122" x2="247.7" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
+<text x="247.7" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Jul 30</text>
+<line x1="419.3" y1="122" x2="419.3" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
+<text x="419.3" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Aug 11</text>
+<line x1="576.7" y1="122" x2="576.7" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
+<text x="576.7" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Aug 22</text>
+<line x1="748.3" y1="122" x2="748.3" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
+<text x="748.3" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Sep 03</text>
 <line x1="920.0" y1="122" x2="920.0" y2="478" stroke="#dbe4ee" stroke-width="1" opacity="0.45"/>
-<text x="920.0" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Sep 14</text>
+<text x="920.0" y="506" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">Sep 15</text>
 <g class="trend-enter">
-<path d="M 76.0 211.0 C 226.4 181.3, 376.7 122.0, 527.1 122.0 C 532.0 122.0, 536.8 122.0, 541.7 122.0 C 546.5 122.0, 551.4 122.0, 556.2 122.0 C 561.1 122.0, 565.9 122.0, 570.8 122.0 C 575.6 122.0, 580.5 122.0, 585.3 122.0 C 590.2 122.0, 595.0 122.0, 599.9 122.0 C 604.7 122.0, 609.6 122.0, 614.4 122.0 C 619.3 122.0, 624.1 122.0, 629.0 122.0 C 633.8 122.0, 638.7 122.0, 643.5 122.0 C 648.4 122.0, 653.2 122.0, 658.1 122.0 C 662.9 122.0, 667.8 122.0, 672.6 122.0 C 677.5 122.0, 682.3 122.0, 687.2 122.0 C 692.0 122.0, 696.9 122.0, 701.7 122.0 C 706.6 122.0, 711.4 122.0, 716.3 122.0 C 721.1 122.0, 726.0 122.0, 730.8 122.0 C 735.7 122.0, 740.5 122.0, 745.4 122.0 C 750.2 122.0, 755.1 122.0, 759.9 122.0 C 764.8 122.0, 769.6 122.0, 774.5 122.0 C 779.3 122.0, 784.2 122.0, 789.0 122.0 C 793.9 122.0, 798.7 122.0, 803.6 122.0 C 808.4 122.0, 813.3 122.0, 818.1 122.0 C 823.0 122.0, 827.8 122.0, 832.7 122.0 C 837.5 122.0, 842.4 122.0, 847.2 122.0 C 852.1 122.0, 856.9 122.0, 861.8 122.0 C 866.6 122.0, 871.5 122.0, 876.3 122.0 C 881.2 122.0, 886.0 122.0, 890.9 122.0 C 895.7 122.0, 900.6 122.0, 905.4 122.0 C 910.3 122.0, 915.1 122.0, 920.0 122.0 L 920.0 478.0 L 76.0 478.0 Z" fill="url(#area)"/>
-<path d="M 76.0 211.0 C 226.4 181.3, 376.7 122.0, 527.1 122.0 C 532.0 122.0, 536.8 122.0, 541.7 122.0 C 546.5 122.0, 551.4 122.0, 556.2 122.0 C 561.1 122.0, 565.9 122.0, 570.8 122.0 C 575.6 122.0, 580.5 122.0, 585.3 122.0 C 590.2 122.0, 595.0 122.0, 599.9 122.0 C 604.7 122.0, 609.6 122.0, 614.4 122.0 C 619.3 122.0, 624.1 122.0, 629.0 122.0 C 633.8 122.0, 638.7 122.0, 643.5 122.0 C 648.4 122.0, 653.2 122.0, 658.1 122.0 C 662.9 122.0, 667.8 122.0, 672.6 122.0 C 677.5 122.0, 682.3 122.0, 687.2 122.0 C 692.0 122.0, 696.9 122.0, 701.7 122.0 C 706.6 122.0, 711.4 122.0, 716.3 122.0 C 721.1 122.0, 726.0 122.0, 730.8 122.0 C 735.7 122.0, 740.5 122.0, 745.4 122.0 C 750.2 122.0, 755.1 122.0, 759.9 122.0 C 764.8 122.0, 769.6 122.0, 774.5 122.0 C 779.3 122.0, 784.2 122.0, 789.0 122.0 C 793.9 122.0, 798.7 122.0, 803.6 122.0 C 808.4 122.0, 813.3 122.0, 818.1 122.0 C 823.0 122.0, 827.8 122.0, 832.7 122.0 C 837.5 122.0, 842.4 122.0, 847.2 122.0 C 852.1 122.0, 856.9 122.0, 861.8 122.0 C 866.6 122.0, 871.5 122.0, 876.3 122.0 C 881.2 122.0, 886.0 122.0, 890.9 122.0 C 895.7 122.0, 900.6 122.0, 905.4 122.0 C 910.3 122.0, 915.1 122.0, 920.0 122.0" fill="none" stroke="url(#trend)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.10" filter="url(#trend-glow)"/>
-<path d="M 76.0 211.0 C 226.4 181.3, 376.7 122.0, 527.1 122.0 C 532.0 122.0, 536.8 122.0, 541.7 122.0 C 546.5 122.0, 551.4 122.0, 556.2 122.0 C 561.1 122.0, 565.9 122.0, 570.8 122.0 C 575.6 122.0, 580.5 122.0, 585.3 122.0 C 590.2 122.0, 595.0 122.0, 599.9 122.0 C 604.7 122.0, 609.6 122.0, 614.4 122.0 C 619.3 122.0, 624.1 122.0, 629.0 122.0 C 633.8 122.0, 638.7 122.0, 643.5 122.0 C 648.4 122.0, 653.2 122.0, 658.1 122.0 C 662.9 122.0, 667.8 122.0, 672.6 122.0 C 677.5 122.0, 682.3 122.0, 687.2 122.0 C 692.0 122.0, 696.9 122.0, 701.7 122.0 C 706.6 122.0, 711.4 122.0, 716.3 122.0 C 721.1 122.0, 726.0 122.0, 730.8 122.0 C 735.7 122.0, 740.5 122.0, 745.4 122.0 C 750.2 122.0, 755.1 122.0, 759.9 122.0 C 764.8 122.0, 769.6 122.0, 774.5 122.0 C 779.3 122.0, 784.2 122.0, 789.0 122.0 C 793.9 122.0, 798.7 122.0, 803.6 122.0 C 808.4 122.0, 813.3 122.0, 818.1 122.0 C 823.0 122.0, 827.8 122.0, 832.7 122.0 C 837.5 122.0, 842.4 122.0, 847.2 122.0 C 852.1 122.0, 856.9 122.0, 861.8 122.0 C 866.6 122.0, 871.5 122.0, 876.3 122.0 C 881.2 122.0, 886.0 122.0, 890.9 122.0 C 895.7 122.0, 900.6 122.0, 905.4 122.0 C 910.3 122.0, 915.1 122.0, 920.0 122.0" fill="none" stroke="url(#trend)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<g data-point-count="28" fill="#172033" opacity="0.68">
+<path d="M 76.0 211.0 C 223.8 181.3, 371.6 122.0, 519.5 122.0 C 524.2 122.0, 529.0 122.0, 533.8 122.0 C 538.5 122.0, 543.3 122.0, 548.1 122.0 C 552.8 122.0, 557.6 122.0, 562.4 122.0 C 567.1 122.0, 571.9 122.0, 576.7 122.0 C 581.4 122.0, 586.2 122.0, 591.0 122.0 C 595.8 122.0, 600.5 122.0, 605.3 122.0 C 610.1 122.0, 614.8 122.0, 619.6 122.0 C 624.4 122.0, 629.1 122.0, 633.9 122.0 C 638.7 122.0, 643.4 122.0, 648.2 122.0 C 653.0 122.0, 657.7 122.0, 662.5 122.0 C 667.3 122.0, 672.0 122.0, 676.8 122.0 C 681.6 122.0, 686.4 122.0, 691.1 122.0 C 695.9 122.0, 700.7 122.0, 705.4 122.0 C 710.2 122.0, 715.0 122.0, 719.7 122.0 C 724.5 122.0, 729.3 122.0, 734.0 122.0 C 738.8 122.0, 743.6 122.0, 748.3 122.0 C 753.1 122.0, 757.9 122.0, 762.6 122.0 C 767.4 122.0, 772.2 122.0, 776.9 122.0 C 781.7 122.0, 786.5 122.0, 791.3 122.0 C 796.0 122.0, 800.8 122.0, 805.6 122.0 C 810.3 122.0, 815.1 122.0, 819.9 122.0 C 824.6 122.0, 829.4 122.0, 834.2 122.0 C 838.9 122.0, 843.7 122.0, 848.5 122.0 C 853.2 122.0, 858.0 122.0, 862.8 122.0 C 867.5 122.0, 872.3 122.0, 877.1 122.0 C 881.9 122.0, 886.6 122.0, 891.4 122.0 C 896.2 122.0, 900.9 122.0, 905.7 122.0 C 910.5 122.0, 915.2 122.0, 920.0 122.0 L 920.0 478.0 L 76.0 478.0 Z" fill="url(#area)"/>
+<path d="M 76.0 211.0 C 223.8 181.3, 371.6 122.0, 519.5 122.0 C 524.2 122.0, 529.0 122.0, 533.8 122.0 C 538.5 122.0, 543.3 122.0, 548.1 122.0 C 552.8 122.0, 557.6 122.0, 562.4 122.0 C 567.1 122.0, 571.9 122.0, 576.7 122.0 C 581.4 122.0, 586.2 122.0, 591.0 122.0 C 595.8 122.0, 600.5 122.0, 605.3 122.0 C 610.1 122.0, 614.8 122.0, 619.6 122.0 C 624.4 122.0, 629.1 122.0, 633.9 122.0 C 638.7 122.0, 643.4 122.0, 648.2 122.0 C 653.0 122.0, 657.7 122.0, 662.5 122.0 C 667.3 122.0, 672.0 122.0, 676.8 122.0 C 681.6 122.0, 686.4 122.0, 691.1 122.0 C 695.9 122.0, 700.7 122.0, 705.4 122.0 C 710.2 122.0, 715.0 122.0, 719.7 122.0 C 724.5 122.0, 729.3 122.0, 734.0 122.0 C 738.8 122.0, 743.6 122.0, 748.3 122.0 C 753.1 122.0, 757.9 122.0, 762.6 122.0 C 767.4 122.0, 772.2 122.0, 776.9 122.0 C 781.7 122.0, 786.5 122.0, 791.3 122.0 C 796.0 122.0, 800.8 122.0, 805.6 122.0 C 810.3 122.0, 815.1 122.0, 819.9 122.0 C 824.6 122.0, 829.4 122.0, 834.2 122.0 C 838.9 122.0, 843.7 122.0, 848.5 122.0 C 853.2 122.0, 858.0 122.0, 862.8 122.0 C 867.5 122.0, 872.3 122.0, 877.1 122.0 C 881.9 122.0, 886.6 122.0, 891.4 122.0 C 896.2 122.0, 900.9 122.0, 905.7 122.0 C 910.5 122.0, 915.2 122.0, 920.0 122.0" fill="none" stroke="url(#trend)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.10" filter="url(#trend-glow)"/>
+<path d="M 76.0 211.0 C 223.8 181.3, 371.6 122.0, 519.5 122.0 C 524.2 122.0, 529.0 122.0, 533.8 122.0 C 538.5 122.0, 543.3 122.0, 548.1 122.0 C 552.8 122.0, 557.6 122.0, 562.4 122.0 C 567.1 122.0, 571.9 122.0, 576.7 122.0 C 581.4 122.0, 586.2 122.0, 591.0 122.0 C 595.8 122.0, 600.5 122.0, 605.3 122.0 C 610.1 122.0, 614.8 122.0, 619.6 122.0 C 624.4 122.0, 629.1 122.0, 633.9 122.0 C 638.7 122.0, 643.4 122.0, 648.2 122.0 C 653.0 122.0, 657.7 122.0, 662.5 122.0 C 667.3 122.0, 672.0 122.0, 676.8 122.0 C 681.6 122.0, 686.4 122.0, 691.1 122.0 C 695.9 122.0, 700.7 122.0, 705.4 122.0 C 710.2 122.0, 715.0 122.0, 719.7 122.0 C 724.5 122.0, 729.3 122.0, 734.0 122.0 C 738.8 122.0, 743.6 122.0, 748.3 122.0 C 753.1 122.0, 757.9 122.0, 762.6 122.0 C 767.4 122.0, 772.2 122.0, 776.9 122.0 C 781.7 122.0, 786.5 122.0, 791.3 122.0 C 796.0 122.0, 800.8 122.0, 805.6 122.0 C 810.3 122.0, 815.1 122.0, 819.9 122.0 C 824.6 122.0, 829.4 122.0, 834.2 122.0 C 838.9 122.0, 843.7 122.0, 848.5 122.0 C 853.2 122.0, 858.0 122.0, 862.8 122.0 C 867.5 122.0, 872.3 122.0, 877.1 122.0 C 881.9 122.0, 886.6 122.0, 891.4 122.0 C 896.2 122.0, 900.9 122.0, 905.7 122.0 C 910.5 122.0, 915.2 122.0, 920.0 122.0" fill="none" stroke="url(#trend)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<g data-point-count="29" fill="#172033" opacity="0.68">
 <circle cx="76.0" cy="211.0" r="1.8"/>
-<circle cx="527.1" cy="122.0" r="1.8"/>
-<circle cx="541.7" cy="122.0" r="1.8"/>
-<circle cx="556.2" cy="122.0" r="1.8"/>
-<circle cx="570.8" cy="122.0" r="1.8"/>
-<circle cx="585.3" cy="122.0" r="1.8"/>
-<circle cx="599.9" cy="122.0" r="1.8"/>
-<circle cx="614.4" cy="122.0" r="1.8"/>
-<circle cx="629.0" cy="122.0" r="1.8"/>
-<circle cx="643.5" cy="122.0" r="1.8"/>
-<circle cx="658.1" cy="122.0" r="1.8"/>
-<circle cx="672.6" cy="122.0" r="1.8"/>
-<circle cx="687.2" cy="122.0" r="1.8"/>
-<circle cx="701.7" cy="122.0" r="1.8"/>
-<circle cx="716.3" cy="122.0" r="1.8"/>
-<circle cx="730.8" cy="122.0" r="1.8"/>
-<circle cx="745.4" cy="122.0" r="1.8"/>
-<circle cx="759.9" cy="122.0" r="1.8"/>
-<circle cx="774.5" cy="122.0" r="1.8"/>
-<circle cx="789.0" cy="122.0" r="1.8"/>
-<circle cx="803.6" cy="122.0" r="1.8"/>
-<circle cx="818.1" cy="122.0" r="1.8"/>
-<circle cx="832.7" cy="122.0" r="1.8"/>
-<circle cx="847.2" cy="122.0" r="1.8"/>
-<circle cx="861.8" cy="122.0" r="1.8"/>
-<circle cx="876.3" cy="122.0" r="1.8"/>
-<circle cx="890.9" cy="122.0" r="1.8"/>
-<circle cx="905.4" cy="122.0" r="1.8"/>
+<circle cx="519.5" cy="122.0" r="1.8"/>
+<circle cx="533.8" cy="122.0" r="1.8"/>
+<circle cx="548.1" cy="122.0" r="1.8"/>
+<circle cx="562.4" cy="122.0" r="1.8"/>
+<circle cx="576.7" cy="122.0" r="1.8"/>
+<circle cx="591.0" cy="122.0" r="1.8"/>
+<circle cx="605.3" cy="122.0" r="1.8"/>
+<circle cx="619.6" cy="122.0" r="1.8"/>
+<circle cx="633.9" cy="122.0" r="1.8"/>
+<circle cx="648.2" cy="122.0" r="1.8"/>
+<circle cx="662.5" cy="122.0" r="1.8"/>
+<circle cx="676.8" cy="122.0" r="1.8"/>
+<circle cx="691.1" cy="122.0" r="1.8"/>
+<circle cx="705.4" cy="122.0" r="1.8"/>
+<circle cx="719.7" cy="122.0" r="1.8"/>
+<circle cx="734.0" cy="122.0" r="1.8"/>
+<circle cx="748.3" cy="122.0" r="1.8"/>
+<circle cx="762.6" cy="122.0" r="1.8"/>
+<circle cx="776.9" cy="122.0" r="1.8"/>
+<circle cx="791.3" cy="122.0" r="1.8"/>
+<circle cx="805.6" cy="122.0" r="1.8"/>
+<circle cx="819.9" cy="122.0" r="1.8"/>
+<circle cx="834.2" cy="122.0" r="1.8"/>
+<circle cx="848.5" cy="122.0" r="1.8"/>
+<circle cx="862.8" cy="122.0" r="1.8"/>
+<circle cx="877.1" cy="122.0" r="1.8"/>
+<circle cx="891.4" cy="122.0" r="1.8"/>
+<circle cx="905.7" cy="122.0" r="1.8"/>
 </g>
 </g>
 <g class="marker-enter">
@@ -90,5 +91,5 @@
 <circle cx="920.0" cy="122.0" r="4.5" fill="#0284c7" stroke="#f8fafc" stroke-width="2"/>
 </g>
 <text x="76" y="524" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="600" letter-spacing="1">TRACKED · Jul 2026 – Sep 2026</text>
-<text x="920" y="524" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="600" letter-spacing="1" text-anchor="end">UPDATED · 2026-09-14</text>
+<text x="920" y="524" fill="#526072" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="600" letter-spacing="1" text-anchor="end">UPDATED · 2026-09-15</text>
 </svg>
